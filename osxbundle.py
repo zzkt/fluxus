@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Provides tools for building Mac application bundles."""
+# Based on code by Gary Oberbrunner and Mitch Chapman
 
 from os.path import *
 import re

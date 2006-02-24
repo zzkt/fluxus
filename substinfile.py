@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """A tool that does substitutions from a dictionary on a file"""
+# Based on code by Gary Oberbrunner
 
 def TOOL_SUBST(env):
     """Adds SubstInFile builder, which substitutes the keys->values of SUBST_DICT
