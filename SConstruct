@@ -1,11 +1,8 @@
 #                                                              -*- python -*-
-
 Target       = "fluxus"
-Install   	 = "/usr/local/bin"
+Install      = "/usr/local/bin"
 LibPaths     = Split("/usr/local/lib /usr/X11R6/lib")
 IncludePaths = Split("/usr/local/include libfluxus/src libfluxphysics/src")
-
-#Libs = Split("jack sndfile guile fftw3 ode png glut tiff GL GLU z m Xi Xmu Xext Xt SM ICE X11 pthread lo jpeg")
 
 Source = Split("libfluxus/src/PData.cpp \
         		libfluxus/src/PDataOperator.cpp \
@@ -42,15 +39,19 @@ Source = Split("libfluxus/src/PData.cpp \
 
 env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC')
 Libs = Split("jack sndfile guile fftw3 ode png tiff z m X11 pthread lo jpeg")
+#Libs = Split("jack sndfile guile fftw3 ode png glut tiff GL GLU z m Xi Xmu Xext Xt SM ICE X11 pthread lo jpeg")
 
 if env['PLATFORM'] == 'darwin':
 	from osxbundle import *
 	TOOL_BUNDLE(env)
 	Frameworks = Split("GLUT OpenGL")
 	env.Program(source = Source, target = Target, LIBS=Libs, LIBPATH=LibPaths, CPPPATH=IncludePaths, FRAMEWORKS=Frameworks)
+	env.MakeBundle("Fluxus.app", "fluxus", "key", "fluxus-Info.plist", typecode='APPL', icon_file='macos/fluxus.icns')
 else:
 	Libs.extend(Split("glut GL GLU"))
 	env.Program(source = Source, target = Target, LIBS=Libs, LIBPATH=LibPaths, CPPPATH=IncludePaths)
+	env.Install(Install, Target)
+	env.Alias('install', Install)
 
 if not GetOption('clean'):
 	print '--------------------------------------------------------'		
@@ -91,10 +92,3 @@ if not GetOption('clean'):
 		Exit(1)   
 
 	env = conf.Finish()	
-
-
-if env['PLATFORM'] == 'darwin':
-	env.MakeBundle("Fluxus.app", "fluxus", "key", "fluxus-Info.plist", typecode='APPL', icon_file='macos/fluxus.icns')
-
-env.Install(Install, Target)
-env.Alias('install', Install)
