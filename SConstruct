@@ -41,7 +41,7 @@ Source = Split("libfluxus/src/PData.cpp \
 		src/OSCServer.cpp \
 		src/Recorder.cpp \
 		src/main.cpp")
-FluxusVersion = "0.9osx-rc1"
+FluxusVersion = "0.9osx-rc2"
 
 env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC')
 
