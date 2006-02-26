@@ -69,8 +69,6 @@ SCM ErrorHandler (void *handler_data, SCM tag, SCM args)
 		scm_putc ('\n', p);
 	}
 
-        binding->Fluxus->SwitchToRepl();
-
 	return SCM_UNDEFINED;
 }
 
@@ -173,43 +171,21 @@ void IdleCallback()
 	glutPostRedisplay();
 }
 
-
-SCM EngineCallbackThunk(void * dummy)
-{
-	scm_run_hook(binding->FrameHook,  SCM_EOL);
-	return SCM_UNDEFINED;
-}
-
 void EngineCallback()
 {
-	if (binding->FrameHook)
-		scm_internal_catch(SCM_BOOL_T, 
-				   EngineCallbackThunk, (void*)NULL,
-				   ErrorHandler, (void*)"fluxus");		
+    if (binding->CallbackString!="")
+    {
+        gh_eval_str_with_catch(binding->CallbackString.c_str(), (scm_t_catch_handler)ErrorHandler);
+    }
 }
 
 char *Script;
 
-
-
-static void setup_repl_port() {
-	SCM v = scm_c_make_vector(5, SCM_BOOL_F);
-	scm_vector_set_x(v,SCM_MAKINUM(0),scm_c_eval_string("repl-princ"));
-	scm_vector_set_x(v,SCM_MAKINUM(1),scm_c_eval_string("repl-print"));
-	SCM p = scm_make_soft_port(v, scm_makfrom0str("w"));
-	scm_set_current_output_port(p);
-	scm_set_current_error_port(p);
-}
-
 void inner_main(int argc, char **argv)
 {
 	binding->RegisterProcs();
-	setup_repl_port();
-	
     string fragment;
 
-    binding->FrameHook=scm_make_hook(SCM_MAKINUM(0));
-    scm_gc_protect_object(binding->FrameHook);
     binding->Fluxus->GetRenderer()->SetEngineCallback(EngineCallback);
 
 	string Init = string(getenv("HOME"))+"/"+INIT_FILE;
@@ -229,7 +205,18 @@ void inner_main(int argc, char **argv)
 
 int main(int argc, char *argv[])
 {
-	InitDada();
+#ifdef __APPLE__
+        // for mac osx - get cwd and add guile_scripts to the GUILE_LOAD_PATH env var.
+        std::string argv0(argv[0]);
+        unsigned int lastpos = argv0.rfind('/', argv0.length());
+        if ( lastpos!=std::string::npos )
+        {
+                std::string guile_load_path = argv0.substr(0,lastpos)+std::string("/guile_scripts");
+                putenv( const_cast<char*>((std::string("GUILE_LOAD_PATH=")+guile_load_path).c_str() ) );
+        }
+#endif
+
+        InitDada();
 	srand(time(NULL));
 	
 	glutInitWindowSize(768,576) ;

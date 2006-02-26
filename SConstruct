@@ -1,9 +1,11 @@
 #                                                              -*- python -*-
 
+import os, os.path
+
 # common values, the rest added later on per platform basis
 Target       = "fluxus"
 Install      = "/usr/local/bin"
-LibPaths     = Split("/usr/local/lib")
+LibPaths     = ["/usr/local/lib"]
 Libs = Split("jack sndfile guile fftw3 ode png tiff jpeg z m pthread lo")
 #Libs = Split("jack sndfile guile fftw3 ode png glut tiff GL GLU z m Xi Xmu Xext Xt SM ICE X11 pthread lo jpeg")
 IncludePaths = Split("/usr/local/include libfluxus/src libfluxphysics/src")
@@ -45,7 +47,6 @@ env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC
 
 Default(env.Program(source = Source, target = Target, LIBS=Libs, LIBPATH=LibPaths, CPPPATH=IncludePaths))
 
-import os
 def BuildDmg(target, source, env):
 	tmp_dmg = 'tmp-' + str(target[0])
 	os.system('hdiutil create -size 32m -fs HFS+ -volname "Fluxus" ' + tmp_dmg)
@@ -60,18 +61,39 @@ def BuildDmg(target, source, env):
 	os.remove(tmp_dmg)
 	return None
 
+def Deprefix(path, prefix):
+	res = ""
+	while (path != prefix):
+		(path,a) = os.path.split(path)
+		res = os.path.join(a,res)
+	return res
+	
+def CopyDir(target, source, env):
+	destination = target
+	for src in [str(x) for x in source]:
+		for dirpath, dirs, files in os.walk(src):
+			p = os.path.join(str(destination), Deprefix(dirpath,src))
+			for f in files:
+				env.InstallAs(os.path.join(p,f), os.path.join(dirpath,f))
+			for d in dirs:
+				# makes sure the empty directories are recreated
+				env.Command(Dir(os.path.join(p,d)), [], 'mkdir -p $TARGET')
+
 if env['PLATFORM'] == 'darwin':
 	from osxbundle import *
 	TOOL_BUNDLE(env)
-	env.Replace(FRAMEWORKS = Split("GLUT OpenGL"))
+	env.Replace(FRAMEWORKS = Split("GLUT OpenGL CoreAudio"))
+	env.Replace(LINKCOM = "glibtool --mode=link g++ $LINKFLAGS $_LIBDIRFLAGS $_LIBFLAGS $_FRAMEWORKS -o $TARGET $SOURCES")
+	env.Prepend(LINKFLAGS = ["-static"])
 	env.MakeBundle("Fluxus.app", "fluxus", "key", "fluxus-Info.plist", typecode='APPL', icon_file='macos/fluxus.icns')
-	dmgBuilder = Builder(action = BuildDmg)
-	env['BUILDERS']['DiskImage'] = dmgBuilder
+	#env['BUILDERS']['CopyDir'] = Builder(action = CopyDir)
+	CopyDir("Fluxus.app/Contents/Resources/guile_scripts", ["/usr/local/share/guile/1.6"], env)
+	env['BUILDERS']['DiskImage'] = Builder(action = BuildDmg)
 	DmgFiles = [File("COPYING"), Dir("Fluxus.app"), Dir("docs"), Dir("examples"), Dir("scm")]
 	env.Alias("dmg", env.DiskImage('Fluxus-' + FluxusVersion + '.dmg', DmgFiles))
 else:
 	env.Append(LIBPATH = ["/usr/X11R6/lib"])
-	env.Append(LIBS = Split("X11 glut GL GLU"))
+	env.Append(LIBS = Split("jack X11 glut GL GLU"))
 	env.Install(Install, Target)
 	env.Alias('install', Install)
 
