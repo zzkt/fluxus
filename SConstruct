@@ -56,7 +56,8 @@ Source = Split("libfluxus/src/PData.cpp \
 		src/main.cpp")
 FluxusVersion = "0.9osx-rc3"
 
-env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC')
+env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC',
+		  LIBPATH = LibPaths, CPPPATH = IncludePaths)
 
 def BuildDmg(target, source, env):
 	tmp_dmg = 'tmp-' + str(target[0])
@@ -71,7 +72,7 @@ def BuildDmg(target, source, env):
 	os.remove(tmp_dmg)
 	return None
 
-Default(env.Program(source = Source, target = Target, LIBPATH=LibPaths, CPPPATH=IncludePaths))
+Default(env.Program(source = Source, target = Target))
 
 if env['PLATFORM'] == 'darwin':
 	from osxbundle import *
@@ -79,11 +80,11 @@ if env['PLATFORM'] == 'darwin':
 	env.Replace(LINKCOM = "glibtool --mode=link g++ $LINKFLAGS $_LIBDIRFLAGS $_LIBFLAGS $_FRAMEWORKS -o $TARGET $SOURCES")
 	env.Prepend(LINKFLAGS = ["-static"])
 else:
-	env.Append(LIBPATH = ["/usr/X11R6/lib"])
 	LibList += [["X11", "X11/Xlib.h"],
                     ["glut", "GL/glut.h"],
-           	    ["GL", "GL/GL.h"],
-		    ["GLU", "GL/GLU.h"]]
+           	    ["GL", "GL/gl.h"],
+		    ["GLU", "GL/glu.h"]]
+	env.Append(LIBPATH = ["/usr/X11R6/lib"])
 
 if not GetOption('clean'):
 	print '--------------------------------------------------------'		
