@@ -57,7 +57,8 @@ Source = Split("libfluxus/src/PData.cpp \
 FluxusVersion = "0.9osx-rc3"
 
 env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC',
-		  LIBPATH = LibPaths, CPPPATH = IncludePaths)
+		  LIBPATH = LibPaths,
+		  CPPPATH = IncludePaths)
 
 def BuildDmg(target, source, env):
 	tmp_dmg = 'tmp-' + str(target[0])
@@ -77,7 +78,8 @@ Default(env.Program(source = Source, target = Target))
 if env['PLATFORM'] == 'darwin':
 	from osxbundle import *
 	TOOL_BUNDLE(env)
-	env.Replace(LINKCOM = "glibtool --mode=link g++ $LINKFLAGS $_LIBDIRFLAGS $_LIBFLAGS $_FRAMEWORKS -o $TARGET $SOURCES")
+	# env.Replace(LINKCOM = "./libtool --mode=link g++ $LINKFLAGS $_LIBDIRFLAGS $_LIBFLAGS $_FRAMEWORKS -o $TARGET $SOURCES")
+	env.Replace(LINK = "./libtool --mode=link g++")
 	env.Prepend(LINKFLAGS = ["-static"])
 else:
 	LibList += [["X11", "X11/Xlib.h"],
