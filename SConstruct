@@ -6,13 +6,13 @@ Target       = "fluxus"
 
 Prefix = "/usr/local"
 Install      = Prefix + "/bin"
-DataPrefix   = Prefix + "/share/fluxus"
-SchemePrefix = DataPrefix + "/scm"
 
 GuileVersionMajMin = "1.6"
 GuilePrefix        = "/usr/local"
 GuileDataPrefix    = GuilePrefix + "/share/guile"
 GuileSchemePrefix  = GuileDataPrefix + "/" + GuileVersionMajMin
+
+SchemePrefix = GuileSchemePrefix + "/site/fluxus"
 
 LibPaths     = ["/usr/local/lib"]
 # First member of each list is a library, second - a header or headers list
@@ -112,9 +112,10 @@ if env['PLATFORM'] == 'darwin':
 					"macos/fluxus-Info.plist",
 					typecode='APPL',
 					icon_file='macos/fluxus.icns'))
-	SchemePrefix = "Fluxus.app/Contents/Resources/guile_scripts"
+	GuileScripts = "Fluxus.app/Contents/Resources/guile_scripts"
+	SchemePrefix = GuileScripts + "/site/fluxus"
 	for where, dirs, files in os.walk(GuileSchemePrefix):
-		dest = os.path.join(SchemePrefix, where[len(GuileSchemePrefix)+1:])
+		dest = os.path.join(GuileScripts, where[len(GuileSchemePrefix)+1:])
 		for f in files:
 			env.Install(dest, os.path.join(where,f))
 	
@@ -123,7 +124,6 @@ if env['PLATFORM'] == 'darwin':
 	env.Alias("dmg", env.DiskImage('Fluxus-' + FluxusVersion + '.dmg',
 				       DmgFiles))
 else:
-	env.Replace(CPPDEFINES = [("FLUXUS_SCHEME_DIR", SchemePrefix)])
 	env.Install(Install, Target)
 	env.Alias('install', Prefix)
 
