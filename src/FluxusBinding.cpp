@@ -15,15 +15,13 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #include <fstream>
-#include <libguile.h>
 #include "FluxusBinding.h"
 #include "SearchPaths.h"
-#include "Repl.h"
 
 FluxusMain     *FluxusBinding::Fluxus=NULL;
 AudioCollector *FluxusBinding::Audio=NULL;
 TurtleBuilder   FluxusBinding::turtle;
-SCM		FluxusBinding::FrameHook=NULL;
+string          FluxusBinding::CallbackString;
 PolyPrimitive*  FluxusBinding::StaticCube=NULL;
 PolyPrimitive*  FluxusBinding::StaticPlane=NULL;
 PolyPrimitive*  FluxusBinding::StaticSphere=NULL;
@@ -56,7 +54,6 @@ FluxusBinding::FluxusBinding(int w, int h)
     MakeCylinder(StaticCylinder,1,1,5,10);
 	
 	Fluxus = new FluxusMain(w,h);
-
 }
 
 FluxusBinding::~FluxusBinding()
@@ -351,11 +348,7 @@ SCM FluxusBinding::clear()
 {
 	Fluxus->GetRenderer()->Clear();
 	Fluxus->GetPhysics()->Clear();
-	if (FrameHook)
-		scm_reset_hook_x(FrameHook);
-	else {
-		fprintf(stderr, "FrameHook == NULL during (clear)!\n");
-	}
+	CallbackString="";
 	return SCM_UNSPECIFIED;
 }
 
@@ -1073,9 +1066,14 @@ SCM FluxusBinding::multitexture(SCM s_t, SCM s_id)
     return SCM_UNSPECIFIED;
 }
 
-SCM FluxusBinding::frame_hook()
+SCM FluxusBinding::engine_callback(SCM s_func)
 {
-	return FrameHook;
+	SCM_ASSERT(SCM_STRINGP(s_func), s_func, SCM_ARG1, "engine_callback");
+	size_t size=0;
+	char *temp=gh_scm2newstr(s_func,&size);
+	CallbackString=temp;
+	free(temp);
+    return SCM_UNSPECIFIED;
 }
 
 SCM FluxusBinding::frustum(SCM s_u, SCM s_d, SCM s_l, SCM s_r)
@@ -1134,24 +1132,14 @@ SCM FluxusBinding::print_scene_graph()
 	return SCM_UNSPECIFIED;
 }
 
-SCM FluxusBinding::edit(SCM s_name)
+SCM FluxusBinding::load(SCM s_name)
 {
-	SCM_ASSERT(SCM_STRINGP(s_name), s_name, SCM_ARG1, "edit");
-        /*
-        size_t size=0;
+	SCM_ASSERT(SCM_STRINGP(s_name), s_name, SCM_ARG1, "load");	
+    size_t size=0;
 	char *name=gh_scm2newstr(s_name,&size);
 	Fluxus->LoadScript(name);
 	free(name);
-        return SCM_UNSPECIFIED;
-        */
-        s_name = scm_sys_search_load_path(s_name);
-        if (SCM_STRINGP(s_name)) {
-                Fluxus->LoadScript(SCM_STRING_CHARS(s_name));
-        } else {
-                /* FIXME bitch */
-        }
-        
-        return SCM_UNSPECIFIED;
+    return SCM_UNSPECIFIED;
 }
 
 SCM FluxusBinding::save_name(SCM s_name)
@@ -1712,10 +1700,11 @@ SCM FluxusBinding::finalise()
 	return SCM_UNSPECIFIED;
 }
 
-SCM FluxusBinding::recalc_normals()
+SCM FluxusBinding::recalc_normals(SCM s_b)
 {
+    SCM_ASSERT(SCM_NUMBERP(s_b), s_b, SCM_ARG1, "recalc-normals");
 	Primitive *Grabbed=Fluxus->GetRenderer()->Grabbed();    
-	if (Grabbed) Grabbed->RecalculateNormals();
+	if (Grabbed) Grabbed->RecalculateNormals(gh_scm2double(s_b));
 	return SCM_UNSPECIFIED;
 }
 
@@ -2075,21 +2064,6 @@ SCM FluxusBinding::full_path(SCM s_filename)
 	return gh_str2scm(fullpath.c_str(),fullpath.length());
 }
 
-SCM FluxusBinding::repl_princ(SCM c)
-{
-	Fluxus->GetRepl()->Print(c);
-	return SCM_UNSPECIFIED;
-}
-
-SCM FluxusBinding::repl_print(SCM s)
-{
-	// FIXME this is wrong
-	if (!SCM_STRINGP(s)) 
-		return repl_princ(s);
-	Fluxus->GetRepl()->Print(string(SCM_STRING_CHARS(s)));
-	return SCM_UNSPECIFIED;
-}
-
 void FluxusBinding::RegisterProcs()
 {
 	// primitives
@@ -2181,7 +2155,7 @@ void FluxusBinding::RegisterProcs()
 	gh_new_procedure0_2("light-position",  light_position);
 	
 	// interpreter + misc
-	gh_new_procedure0_1("edit", edit);
+	gh_new_procedure0_1("edit", load);
 	gh_new_procedure0_1("save-name", save_name);
 	//gh_new_procedure0_1("source", source);
 	gh_new_procedure0_1("key-pressed", key_pressed);
@@ -2189,7 +2163,7 @@ void FluxusBinding::RegisterProcs()
 	gh_new_procedure0_1("mouse-button", mouse_button);
     gh_new_procedure0_0("time", time);
     gh_new_procedure0_0("delta", delta);
-    gh_new_procedure0_0("frame-hook", frame_hook);
+    gh_new_procedure0_1("every-frame", engine_callback);
     gh_new_procedure0_0("flxrnd", srandom);
 	gh_new_procedure0_1("desiredfps", desiredfps);
 	gh_new_procedure0_2("start-framedump", start_framedump);
@@ -2255,7 +2229,7 @@ void FluxusBinding::RegisterProcs()
 	gh_new_procedure0_2("pdata-copy", pdata_copy);
 	gh_new_procedure3_0("pdata-op", pdata_op);	
 	gh_new_procedure0_0("finalise", finalise);
-	gh_new_procedure0_0("recalc-normals", recalc_normals);
+	gh_new_procedure0_1("recalc-normals", recalc_normals);
 	
 	// maths
 	gh_new_procedure0_2("vmul", vmul);
@@ -2283,7 +2257,4 @@ void FluxusBinding::RegisterProcs()
 
 	gh_new_procedure0_1("searchpaths", searchpaths);
 	gh_new_procedure0_1("full-path", full_path);
-	
-	gh_new_procedure1_0("repl-princ", repl_princ);
-	gh_new_procedure1_0("repl-print", repl_print);
 }

@@ -19,7 +19,7 @@ public:
 	static FluxusMain *Fluxus;
 	static AudioCollector *Audio;
 	static TurtleBuilder turtle;
-	static SCM FrameHook;
+	static string CallbackString;
 	static int GrabbedID;
 
 	static PolyPrimitive* StaticCube;
@@ -129,7 +129,7 @@ public:
 	static SCM force_load_texture(SCM s_name);
 	static SCM texture(SCM s_id);
 	static SCM multitexture(SCM s_t, SCM s_id);
-	static SCM frame_hook();
+	static SCM engine_callback(SCM s_func);
 	static SCM ortho();
 	static SCM persp();
 	static SCM frustum(SCM s_u, SCM s_d, SCM s_l, SCM s_r);
@@ -138,7 +138,7 @@ public:
 	static SCM delta();
 	static SCM reset_camera();
 	static SCM print_scene_graph();
-	static SCM edit(SCM s_name);
+	static SCM load(SCM s_name);
 	static SCM save_name(SCM s_name);
 	static SCM source(SCM s_name);
 	static SCM fluxface(SCM s_name, SCM x, SCM y);
@@ -173,7 +173,7 @@ public:
 	static SCM pdata_add(SCM s_name, SCM s_type);
 	static SCM pdata_copy(SCM s_s, SCM s_d);
 	static SCM finalise();
-	static SCM recalc_normals();
+	static SCM recalc_normals(SCM s_b);
 	static SCM pdata_op(SCM s_op, SCM s_pd, SCM s_oper);
 		
 	static SCM vmul(SCM s_a, SCM s_b);
@@ -207,7 +207,5 @@ public:
 	static SCM searchpaths(SCM s_list);
 	static SCM full_path(SCM s_filename);
 
-	static SCM repl_princ(SCM c);
-	static SCM repl_print(SCM s);
 };
 #endif

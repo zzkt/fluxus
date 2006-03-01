@@ -2,6 +2,7 @@ Fluxus : (C) 2005 Dave Griffiths : dave at pawfal dot org : www.pawfal.org
 
 0.9
 
+* (recalc-normals smooth) now takes an optional smooth flag
 * osc fix
 * blur works for coloured backgrounds
 * (searchpath '("path/to/textures" "path/to/scripts" "path/to/scripts2" "path/to/etc"))

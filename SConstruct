@@ -4,10 +4,10 @@ LibPaths     = Split("/usr/local/lib /usr/X11R6/lib")
 IncludePaths = Split("/usr/local/include libfluxus/src libfluxphysics/src")
 	 
 # for xorg
-Libs = Split("jack sndfile guile fftw3 ode png glut tiff GL GLU z m X11 pthread lo jpeg")
+#Libs = Split("jack sndfile guile fftw3 ode png glut tiff GL GLU z m X11 pthread lo jpeg")
 
 # for X11
-#Libs = Split("jack sndfile guile fftw3 ode png glut tiff GL GLU z m Xi Xmu Xext Xt SM ICE X11 pthread lo jpeg")
+Libs = Split("jack sndfile guile fftw3 ode png glut tiff GL GLU z m Xi Xmu Xext Xt SM ICE X11 pthread lo jpeg")
 
 Source = Split("libfluxus/src/PData.cpp \
 				libfluxus/src/PDataOperator.cpp \
