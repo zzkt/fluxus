@@ -78,17 +78,16 @@ if env['PLATFORM'] == 'darwin':
 	env.Replace(LINK = "macos/libtool --mode=link g++")
 	env.Prepend(LINKFLAGS = ["-static"])
 else:
-	LibList += [["X11", "X11/Xlib.h"],
-                    ["glut", "GL/glut.h"],
-           	    ["GL", "GL/gl.h"],
-		    ["GLU", "GL/glu.h"]]
+	LibList += [
+		# FIXME: detect or accept command line
+		# for xorg
+		# ["X11", "X11/Xlib.h"],
+		# for X11
+		[Split("Xi Xmu Xext Xt SM ICE X11"), None],
+		["glut", "GL/glut.h"],
+		["GL", "GL/gl.h"],
+		["GLU", "GL/glu.h"]]
 	env.Append(LIBPATH = ["/usr/X11R6/lib"])
-
-# for xorg
-#Libs = Split("jack sndfile guile fftw3 ode png glut tiff GL GLU z m X11 pthread lo jpeg")
-# for X11
-#Libs = Split("jack sndfile guile fftw3 ode png glut tiff GL GLU z m Xi Xmu Xext Xt SM ICE X11 pthread lo jpeg")
-
 	
 if not GetOption('clean'):
 	print '--------------------------------------------------------'		
@@ -98,14 +97,20 @@ if not GetOption('clean'):
 
 	# all libraries are required, but they can be checked for independently (hence autoadd=0),
 	# which allows us to speed up the tests ...
+	Libs = []
 	for (lib,headers) in LibList:
-		if not conf.CheckLibWithHeader(lib, headers, 'C', autoadd = 0):
+		if ((headers == None) and (not conf.CheckLib(lib, autoadd = 0))) or \
+			    ((headers != None) and (not conf.CheckLibWithHeader(lib, headers, 'C', autoadd = 0))):
 			print "ERROR: '%s' must be installed!" % (lib)
 			Exit(1)
-		
+		if isinstance(lib, str):
+			Libs.append(lib)
+		else:
+			Libs.extend(lib)
+		     
 	env = conf.Finish()
 	# ... but we shouldn't forget to add them to LIBS manually
-	env.Replace(LIBS = [rec[0] for rec in LibList])
+	env.Replace(LIBS = Libs)
 
 # packaging / installing
 if env['PLATFORM'] == 'darwin':
