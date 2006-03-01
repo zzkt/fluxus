@@ -33,10 +33,11 @@ LibList      = [["m", "math.h"],
 
 IncludePaths = Split("/usr/local/include libfluxus/src libfluxphysics/src")
 Source = Split("libfluxus/src/PData.cpp \
-        	libfluxus/src/PDataOperator.cpp \
+                libfluxus/src/PDataOperator.cpp \
 		libfluxus/src/PDataContainer.cpp \
 		libfluxus/src/PDataArithmetic.cpp \
 		libfluxus/src/GraphicsUtils.cpp \
+		libfluxus/src/Lifeforms.cpp \
 		libfluxus/src/PNGLoader.cpp \
 		libfluxus/src/PolyPrimitive.cpp \
 		libfluxus/src/TextPrimitive.cpp \
@@ -63,7 +64,7 @@ Source = Split("libfluxus/src/PData.cpp \
 		src/Utils.cpp \
 		src/OSCServer.cpp \
 		src/Recorder.cpp \
-		src/main.cpp")
+		src/main.cpp")					
 FluxusVersion = "0.9osx-rc3"
 
 env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC',
@@ -83,6 +84,12 @@ else:
 		    ["GLU", "GL/glu.h"]]
 	env.Append(LIBPATH = ["/usr/X11R6/lib"])
 
+# for xorg
+#Libs = Split("jack sndfile guile fftw3 ode png glut tiff GL GLU z m X11 pthread lo jpeg")
+# for X11
+#Libs = Split("jack sndfile guile fftw3 ode png glut tiff GL GLU z m Xi Xmu Xext Xt SM ICE X11 pthread lo jpeg")
+
+	
 if not GetOption('clean'):
 	print '--------------------------------------------------------'		
 	print 'Fluxus: Configuring Build Environment'
