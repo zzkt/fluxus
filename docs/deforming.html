@@ -34,10 +34,12 @@ a sphere with randomly jittered vertices
 when deforming geometry, moving the positions of the vertices is not usually enough, 
 the normals will need to be updated for the lighting to work correctly. 
 
-<c>(recalc-normals)</c>
+<c>(recalc-normals smooth)</c>
 will regenerate the normals for polygon and nurbs primitives based on the vertex 
 positions. not particually fast (it is better to deform the normals in your 
 script if you can) and only works on poly primitives of type QUADS and TRILIST.
+if smooth is 1, the face normals are averaged with the coincident face normals to
+give a smooth appearance
 
 when working on polygon primitives it will cache certain results, so it will be
 a lot slower on the first calculation than subsequent calls on the same 
