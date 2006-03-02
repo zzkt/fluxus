@@ -81,9 +81,9 @@ else:
 	LibList += [
 		# FIXME: detect or accept command line
 		# for xorg
-		# ["X11", "X11/Xlib.h"],
+		 ["X11", "X11/Xlib.h"],
 		# for X11
-		[Split("Xi Xmu Xext Xt SM ICE X11"), None],
+		#[Split("Xi Xmu Xext Xt SM ICE X11"), None],
 		["glut", "GL/glut.h"],
 		["GL", "GL/gl.h"],
 		["GLU", "GL/glu.h"]]

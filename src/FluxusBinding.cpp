@@ -546,7 +546,7 @@ SCM FluxusBinding::blend_mode(SCM s_s, SCM s_d)
 	
 	size_t size=0;
 	char *s=gh_scm2newstr(s_s,&size);	
-	char *d=gh_scm2newstr(s_s,&size);	
+	char *d=gh_scm2newstr(s_d,&size);	
     Primitive *Grabbed=Fluxus->GetRenderer()->Grabbed();
     if (Grabbed) Grabbed->GetState()->SetBlendMode(s,d);
     else Fluxus->GetRenderer()->GetState()->SetBlendMode(s,d);
