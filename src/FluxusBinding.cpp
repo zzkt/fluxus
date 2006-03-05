@@ -1387,11 +1387,15 @@ SCM FluxusBinding::osc_send(SCM s_msg, SCM s_types, SCM s_arglist)
 		else
 		{
 			cerr<<"osc-send has found an argument type it can't send, numbers and strings only"<<endl;
+			free(msg);
+			free(types);
+    		return SCM_UNSPECIFIED;
 		}
 	}
 
 	Fluxus->SendOSC(msg,oscargs);
 	free(msg);
+	free(types);
     return SCM_UNSPECIFIED;
 }
 
