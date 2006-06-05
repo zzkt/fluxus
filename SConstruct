@@ -24,7 +24,7 @@ LibList      = [["m", "math.h"],
 		["jack", "jack/jack.h"],
 		["sndfile", "sndfile.h"],
 		["pthread", "pthread.h"],
-		["guile", "guile/gh.h"],
+		["guile", "libguile.h"],
 		["fftw3", "fftw3.h"],
 		["ode", "ode/ode.h"],
 		["lo", "lo/lo.h"],
@@ -56,7 +56,6 @@ Source = Split("libfluxus/src/PData.cpp \
 		libfluxus/src/Tree.cpp \
 		libfluxus/src/dada.cpp \
 		libfluxus/src/SearchPaths.cpp \
-		libfluxus/src/GLSLShader.cpp \
 		libfluxphysics/src/Physics.cpp \
 		src/AudioCollector.cpp \
 		src/FluxusMain.cpp \
@@ -120,8 +119,7 @@ else:
 	LibList += [["X11", "X11/Xlib.h"],
            	    ["GL", "GL/gl.h"],
            	    ["GLU", "GL/glu.h"],
-                ["glut", "GL/glut.h"],
-                ["GLEW", "GL/glew.h"]]
+                ["glut", "GL/glut.h"]]
 	env.Append(LIBPATH = ["/usr/X11R6/lib"])
 	
 	# add the X11 libs on - needed if we are not building on xorg
@@ -161,10 +159,7 @@ if not GetOption('clean'):
 	# enable users to disable multitexturing manually
 	if ARGUMENTS.get("MULTITEXTURE",1)=="0":
 		env.Append(CCFLAGS=' -DDISABLE_MULTITEXTURING')
-	
-	if ARGUMENTS.get("GLSL",1)=="1":
-		env.Append(CCFLAGS=' -DENABLE_GLSL')
-	
+		
 	env = conf.Finish()
 	# ... but we shouldn't forget to add them to LIBS manually
 	env.Replace(LIBS = [rec[0] for rec in LibList])
