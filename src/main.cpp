@@ -23,98 +23,41 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <cstdio>
-#include <libguile.h>
-#include "FluxusBinding.h"
-#include "FluxusPrimitiveBinding.h"
-#include "FluxusRenderstateBinding.h"
-#include "FluxusGlobalstateBinding.h"
-#include "FluxusMathsBinding.h"
-#include "FluxusOSCBinding.h"
-#include "FluxusPDataBinding.h"
-#include "FluxusPhysicsBinding.h"
-#include "FluxusTurtleBinding.h"
-#include "FluxusAudioBinding.h"
-#include "FluxusIOBinding.h"
-#include "FluxusLightsBinding.h"
-using namespace fluxus;
+#include <string>
+#include <GL/glut.h>
+#include <plt/scheme.h>
+
+using namespace std;
 
 static const string INIT_FILE=".fluxus.scm";
-FluxusBinding *binding;
 
-// copied from the guile source handler_message from throw.cpp
-// todo: replace with gl overlay error log
-SCM ErrorHandler (void *handler_data, SCM tag, SCM args)
-{
-	char *prog_name = (char *) handler_data;
-	SCM p = scm_current_error_port();
 
-	if (scm_ilength (args) >= 3)
-	{
-		SCM stack   = scm_make_stack (SCM_BOOL_T, SCM_EOL);
-		SCM subr    = SCM_CAR (args);
-		SCM message = SCM_CADR (args);
-		SCM parts   = SCM_CADDR (args);
-		SCM rest    = SCM_CDDDR (args);
-
-		if (SCM_BACKTRACE_P && SCM_NFALSEP (stack))
-		{
-			scm_puts ("Backtrace:\n", p);
-			scm_display_backtrace (stack, p, SCM_UNDEFINED, SCM_UNDEFINED);
-			scm_newline (p);
-		}
-		scm_i_display_error (stack, p, subr, message, parts, rest);
-	}
-	else
-	{
-		if (! prog_name)
-		prog_name = "guile";
-
-		scm_puts (prog_name, p);
-		scm_puts (": ", p);
-
-		scm_puts ("uncaught throw to ", p);
-		scm_prin1 (tag, p, 0);
-		scm_puts (": ", p);
-		scm_prin1 (args, p, 1);
-		scm_putc ('\n', p);
-	}
-
-        // binding->Fluxus->SwitchToRepl();
-
-	return SCM_UNDEFINED;
-}
-
-SCM run_scm(void *data)
-{
-	scm_c_eval_string((char *)data);
-	return SCM_UNDEFINED;
-}
+Scheme_Env *scheme = scheme_basic_env();
 
 void DisplayCallback()
 {
-	binding->Fluxus->TickRecorder();
+	//binding->Fluxus->TickRecorder();
     
-	string fragment = binding->Fluxus->GetScriptFragment();
+	string fragment = "(begin (display \"hello world\")(newline))";//binding->Fluxus->GetScriptFragment();
     if (fragment!="")
     {
-		scm_c_catch(SCM_BOOL_T,run_scm,(void*)fragment.c_str(),ErrorHandler, 
-			(void*)"fluxus",ErrorHandler, (void*)"fluxus");
+		scheme_eval_string(fragment.c_str(), scheme);
     }
 	
-	if (binding->Audio!=NULL) binding->Audio->GetFFT();
-	binding->Fluxus->Render();	
+	//if (binding->Audio!=NULL) binding->Audio->GetFFT();
+	//binding->Fluxus->Render();	
 	glutSwapBuffers();
 }
 
 void ReshapeCallback(int width, int height)
 {
-	binding->Fluxus->Reshape(width,height);
+	//binding->Fluxus->Reshape(width,height);
 }
 
 void KeyboardCallback(unsigned char key,int x, int y)
 {
-	binding->Fluxus->Handle(key, -1, -1, -1, x, y, glutGetModifiers());
-		
+	//binding->Fluxus->Handle(key, -1, -1, -1, x, y, glutGetModifiers());
+	/*	
 	if (glutGetModifiers()&GLUT_ACTIVE_CTRL)
 	{
 		// pretty sure this is going to have to change...
@@ -155,36 +98,36 @@ void KeyboardCallback(unsigned char key,int x, int y)
 #endif
 		}
 	}
-	
-	binding->m_KeySet.insert(key);
+	*/
+	//binding->m_KeySet.insert(key);
 }
 
 void KeyboardUpCallback(unsigned char key,int x, int y)
 {
 	//binding->Fluxus->Handle(key, 0, 0, 1, x, y);
-	binding->m_KeySet.erase(key);
+	//binding->m_KeySet.erase(key);
 }
 
 void SpecialKeyboardCallback(int key,int x, int y)
 {
-	binding->Fluxus->Handle(0, -1, key, -1, x, y, glutGetModifiers());
-	binding->m_SpecialKeySet.insert(key);
+	//binding->Fluxus->Handle(0, -1, key, -1, x, y, glutGetModifiers());
+	//binding->m_SpecialKeySet.insert(key);
 }
 
 void SpecialKeyboardUpCallback(int key,int x, int y)
 {
 	//binding->Fluxus->Handle( 0, 0, key, 1, x, y);
-	binding->m_SpecialKeySet.erase(key);
+	//binding->m_SpecialKeySet.erase(key);
 }
 
 void MouseCallback(int button, int state, int x, int y)
 {
-	binding->Fluxus->Handle(0, button, -1, state, x, y, 0);
+	//binding->Fluxus->Handle(0, button, -1, state, x, y, 0);
 }
 
 void MotionCallback(int x, int y)
 {
-	binding->Fluxus->Handle(0, -1, -1, -1, x, y, 0);
+	//binding->Fluxus->Handle(0, -1, -1, -1, x, y, 0);
 }
 
 void IdleCallback()
@@ -193,22 +136,17 @@ void IdleCallback()
 }
 
 
-SCM EngineCallbackThunk(void * dummy)
-{
-	scm_run_hook(binding->FrameHook,  SCM_EOL);
-	return SCM_UNDEFINED;
-}
-
 void EngineCallback()
 {
-	if (binding->FrameHook)
-		scm_c_catch(SCM_BOOL_T, 
-				   EngineCallbackThunk, (void*)NULL,
-				   ErrorHandler, (void*)"fluxus",ErrorHandler, (void*)"fluxus");		
+	//if (binding->FrameHook)
+	//	scm_c_catch(SCM_BOOL_T, 
+	//			   EngineCallbackThunk, (void*)NULL,
+	//			   ErrorHandler, (void*)"fluxus",ErrorHandler, (void*)"fluxus");		
 }
 
 char *Script;
 
+/*
 static void setup_repl_port() {
 	SCM v = scm_c_make_vector(5, SCM_BOOL_F);
 	scm_vector_set_x(v,scm_from_int(0),scm_c_eval_string("repl-princ"));
@@ -217,13 +155,10 @@ static void setup_repl_port() {
 	scm_set_current_output_port(p);
 	scm_set_current_error_port(p);
 }
+*/
 
-SCM load_scm(void *data)
-{
-	scm_c_primitive_load((char *)data);
-	return SCM_UNDEFINED;
-}
 
+/*
 void inner_main(void *context, int argc, char **argv)
 {
 	binding->RegisterProcs();
@@ -285,43 +220,18 @@ void inner_main(void *context, int argc, char **argv)
 	
 	glutMainLoop();
 }
+*/
 
 int main(int argc, char *argv[])
 {
-#ifdef __APPLE__
-        // make sure guile can boot on darwin
-        std::string argv0(argv[0]);
-        unsigned int lastpos = argv0.rfind('/');
-        lastpos = argv0.rfind('/', lastpos-1); // skip "MacOS"
-        if ( lastpos!=std::string::npos )
-        {
-                std::string guile_load_path = argv0.substr(0,lastpos) +
-                        std::string("/Resources/guile_scripts");
-                if (guile_load_path[0] != '/') {
-                        // it isn't clever to have relative search paths
-                        char * cwd = getwd(NULL);
-                        if (cwd) {
-                                guile_load_path = string(cwd) + '/' + guile_load_path;
-                                free(cwd);
-                        }
-                }
-                guile_load_path = guile_load_path + ":" +
-                        guile_load_path + "/site";
-                putenv( const_cast<char*>((std::string("GUILE_LOAD_PATH=") +
-                                           guile_load_path).c_str() ) );
-                cout << "Set GUILE_LOAD_PATH to " << guile_load_path << endl;
-
-        }
-#endif
-
-    InitDada();
+   // InitDada();
 	srand(time(NULL));
 		
 	glutInitWindowSize(720,576) ;
   	glutInit(&argc,argv);
 	glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH|GLUT_STENCIL);
   	glutCreateWindow("fluxus");
-	binding = new FluxusBinding(768,576);
+//	binding = new FluxusBinding(768,576);
 	glutDisplayFunc(DisplayCallback);
 	glutReshapeFunc(ReshapeCallback);
 	glutKeyboardFunc(KeyboardCallback);
@@ -332,15 +242,15 @@ int main(int argc, char *argv[])
 	glutKeyboardUpFunc(KeyboardUpCallback);
 	glutSpecialUpFunc(SpecialKeyboardUpCallback);
 
-    if(glewInit() != GLEW_OK)
-	{
-		cerr << "ERROR Unable to check OpenGL extensions" << endl;
-		return false;
-	}
+    //if(glewInit() != GLEW_OK)
+	//{
+	//	cerr << "ERROR Unable to check OpenGL extensions" << endl;
+	//	return false;
+	//}
 
-	GLSLShader::Init();
+	//GLSLShader::Init();
 
-	scm_boot_guile(argc, argv, inner_main, 0);
+	glutMainLoop();
 	
 	return 0;
 }

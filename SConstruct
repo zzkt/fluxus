@@ -26,7 +26,8 @@ LibList      = [["m", "math.h"],
 		["jack", "jack/jack.h"],
 		["sndfile", "sndfile.h"],
 		["pthread", "pthread.h"],
-		["guile", "guile/gh.h"],
+		["mzgc", "plt/scheme.h"],
+		["mzscheme", "plt/scheme.h"],
 		["fftw3", "fftw3.h"],
 		["ode", "ode/ode.h"],
 		["lo", "lo/lo.h"],
@@ -63,24 +64,9 @@ Source = Split("libfluxus/src/PData.cpp \
 		libfluxus/src/ShadowVolumeGen.cpp \
 		libfluxphysics/src/Physics.cpp \
 		src/AudioCollector.cpp \
-		src/FluxusMain.cpp \
-		src/FluxusBinding.cpp \
-		src/FluxusPrimitiveBinding.cpp \
-		src/FluxusRenderstateBinding.cpp \
-		src/FluxusGlobalstateBinding.cpp \
-		src/FluxusMathsBinding.cpp \
-		src/FluxusOSCBinding.cpp \
-		src/FluxusPDataBinding.cpp \
-		src/FluxusPhysicsBinding.cpp \
-		src/FluxusTurtleBinding.cpp \
-		src/FluxusAudioBinding.cpp \
-		src/FluxusIOBinding.cpp \
-		src/FluxusLightsBinding.cpp \
-		src/SchemePrim.cpp \
 		src/JackClient.cpp \
 		src/TurtleBuilder.cpp \
 		src/GLEditor.cpp \
-		src/Repl.cpp \
 		src/Utils.cpp \
 		src/OSCServer.cpp \
 		src/OSCCore.cpp \
