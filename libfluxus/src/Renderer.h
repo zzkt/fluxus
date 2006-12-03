@@ -44,8 +44,7 @@ public:
 	
 	//////////////////////////////////////////////////////////////////////
 	// Rendering control (retained mode)
-	void BeginScene(bool PickMode=false);
-	void Render();
+	void BeginScene();
 	void EndScene();	
 	void Clear();
 	
@@ -142,6 +141,8 @@ public:
 
 
 private:
+	void PreRender(bool PickMode=false);
+	void PostRender();
 	void RenderLights(bool camera);
 	void InitFeedback();
 	
@@ -149,7 +150,6 @@ private:
 	int   m_Width,m_Height;
 	bool  m_MotionBlur;
 	float m_Fade;
-	bool  m_InScene;
 	bool  m_Ortho;
 	int   m_CameraAttached;
 	bool  m_LockedCamera;

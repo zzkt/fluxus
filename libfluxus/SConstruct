@@ -1,48 +1,94 @@
-Target       = "libfluxus.so"
-Install   	 = "/usr/local/lib"
-IncInstall	 = "/usr/local/include/fluxus"
-LibPaths     = Split("/usr/local/lib /usr/X11R6/lib")
-IncludePaths = Split("/usr/local/include")
-	  
-Libs = Split("png glut GL GLU z m Xi Xmu Xext X11")
+#                                                              -*- python -*-
 
-Source = Split("src/GraphicsUtils.cpp \
-				src/Lifeforms.cpp \
-				src/PNGLoader.cpp \
-				src/PolyPrimitive.cpp \
-				src/TextPrimitive.cpp \
-				src/CompiledPrimitive.cpp \
-				src/LinePrimitive.cpp \
-				src/Primitive.cpp \
-				src/Light.cpp \
-				src/Renderer.cpp \
-				src/SceneGraph.cpp \
-				src/State.cpp \
-				src/TexturePainter.cpp \
-				src/Tree.cpp \
-				src/dada.cpp")	
-								
-Headers = Split("src/GraphicsUtils.h \
-				src/Lifeforms.h \
-				src/PNGLoader.h \
-				src/PolyPrimitive.h \
-				src/TextPrimitive.h \
-				src/CompiledPrimitive.h \
-				src/LinePrimitive.h \
-				src/Primitive.h \
-				src/Light.h \
-				src/Renderer.h \
-				src/SceneGraph.h \
-				src/State.h \
-				src/TexturePainter.h \
-				src/Tree.h \
-				src/dada.h")
+import os, os.path
+
+Target       = "libfluxus.a"
+
+Prefix = "/usr/local"
+Install      = Prefix + "/lib"
+LibPaths     = Split("/usr/local/lib /usr/lib")
+IncludePaths = Split("/usr/local/include /usr/include src")
+
+# First member of each list is a library, second - a header or headers list
+# to be passed to the CheckLibWithHeader(...) at configure time.
+# We may add extra libraries later on per platform basis
+LibList      = [["m", "math.h"],
+		["jpeg", ["stdio.h", "stdlib.h", "jpeglib.h"]],
+		["tiff", "tiff.h"],
+		["z", "zlib.h"],
+		["png", "libpng/png.h"]]
+
+Source = Split("src/PData.cpp \
+        src/PDataOperator.cpp \
+		src/PDataContainer.cpp \
+		src/PDataArithmetic.cpp \
+		src/GraphicsUtils.cpp \
+		src/PNGLoader.cpp \
+		src/PolyPrimitive.cpp \
+		src/TextPrimitive.cpp \
+		src/CompiledPrimitive.cpp \
+		src/LinePrimitive.cpp \
+		src/ParticlePrimitive.cpp \
+		src/PixelPrimitive.cpp \
+		src/BlobbyPrimitive.cpp \
+		src/NURBSPrimitive.cpp \
+		src/LocatorPrimitive.cpp \
+		src/Primitive.cpp \
+		src/Light.cpp \
+		src/Renderer.cpp \
+		src/SceneGraph.cpp \
+		src/State.cpp \
+		src/TexturePainter.cpp \
+		src/Tree.cpp \
+		src/dada.cpp \
+		src/SearchPaths.cpp \
+		src/GLSLShader.cpp \
+		src/ShadowVolumeGen.cpp \
+		src/Physics.cpp")
 		
-env = Environment(CCFLAGS = '-pipe -Wall -O3 -ggdb -ffast-math -Wno-unused -fPIC')
-env.SharedLibrary(source = Source, target = Target, LIBS=Libs, LIBPATH=LibPaths, CPPPATH=IncludePaths)
+env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC',
+		  LIBPATH = LibPaths,
+		  CPPPATH = IncludePaths)
 
-env.Install(IncInstall, Headers)
-env.Alias('install', IncInstall)
+Default(env.StaticLibrary(source = Source, target = Target))
 
+if env['PLATFORM'] == 'darwin':
+	env.Replace(LINK = "macos/libtool --mode=link g++")
+	env.Prepend(LINKFLAGS = ["-static"])
+else:
+	LibList += [["X11", "X11/Xlib.h"],
+           	    ["GL", "GL/gl.h"],
+           	    ["GLU", "GL/glu.h"],
+                ["glut", "GL/glut.h"],
+                ["GLEW", "GL/glew.h"],
+				["ode", "ode/ode.h"]]
+	env.Append(LIBPATH = ["/usr/X11R6/lib"])
+	
+	# add the X11 libs on - needed if we are not building on xorg
+	if ARGUMENTS.get("X11",0):
+		LibList=[["Xi", "X11/Xlib.h"],
+				 ["Xmu", "X11/Xlib.h"], 
+				 ["Xext", "X11/Xlib.h"], 
+				 ["Xt", "X11/Xlib.h"], 
+				 ["SM", "X11/Xlib.h"], 
+				 ["ICE", "X11/Xlib.h"]] + LibList;
+	
+if not GetOption('clean'):
+	print '--------------------------------------------------------'		
+	print 'Fluxus: Configuring Build Environment'
+	print '--------------------------------------------------------'		
+	conf = Configure(env)
+	
+	# all libraries are required, but they can be checked for independently
+	# (hence autoadd=0), which allows us to speed up the tests ...
+	for (lib,headers) in LibList:
+		if not conf.CheckLibWithHeader(lib, headers, 'C', autoadd = 1):
+			print "ERROR: '%s' must be installed!" % (lib)
+			Exit(1)		
+		
+	env = conf.Finish()
+	# ... but we shouldn't forget to add them to LIBS manually
+	env.Replace(LIBS = [rec[0] for rec in LibList])
+	
 env.Install(Install, Target)
-env.Alias('install', Install)
+env.Alias('install', Prefix)

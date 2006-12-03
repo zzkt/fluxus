@@ -16,62 +16,32 @@ GuileSchemePrefix  = GuileDataPrefix + "/" + GuileVersionMajMin
 
 SchemePrefix = GuileSchemePrefix + "/fluxus"
 
-LibPaths     = Split("/usr/local/lib /usr/lib")
-IncludePaths = Split("/usr/local/include /usr/include libfluxus/src libfluxphysics/src")
+LibPaths     = Split("/usr/local/lib \
+					  /usr/lib")
+					  
+IncludePaths = Split("/usr/local/include \
+					  /usr/include")
 
 # First member of each list is a library, second - a header or headers list
 # to be passed to the CheckLibWithHeader(...) at configure time.
 # We may add extra libraries later on per platform basis
 LibList      = [["m", "math.h"],
-		["jack", "jack/jack.h"],
-		["sndfile", "sndfile.h"],
 		["pthread", "pthread.h"],
+		["dl", "stdio.h"],
 		["mzgc", "plt/scheme.h"],
 		["mzscheme", "plt/scheme.h"],
-		["fftw3", "fftw3.h"],
-		["ode", "ode/ode.h"],
-		["lo", "lo/lo.h"],
 		["jpeg", ["stdio.h", "stdlib.h", "jpeglib.h"]],
 		["tiff", "tiff.h"],
 		["z", "zlib.h"],
 		["png", "libpng/png.h"]]
 
-Source = Split("libfluxus/src/PData.cpp \
-        libfluxus/src/PDataOperator.cpp \
-		libfluxus/src/PDataContainer.cpp \
-		libfluxus/src/PDataArithmetic.cpp \
-		libfluxus/src/GraphicsUtils.cpp \
-		libfluxus/src/PNGLoader.cpp \
-		libfluxus/src/PolyPrimitive.cpp \
-		libfluxus/src/TextPrimitive.cpp \
-		libfluxus/src/CompiledPrimitive.cpp \
-		libfluxus/src/LinePrimitive.cpp \
-		libfluxus/src/ParticlePrimitive.cpp \
-		libfluxus/src/PixelPrimitive.cpp \
-		libfluxus/src/BlobbyPrimitive.cpp \
-		libfluxus/src/NURBSPrimitive.cpp \
-		libfluxus/src/LocatorPrimitive.cpp \
-		libfluxus/src/Primitive.cpp \
-		libfluxus/src/Light.cpp \
-		libfluxus/src/Renderer.cpp \
-		libfluxus/src/SceneGraph.cpp \
-		libfluxus/src/State.cpp \
-		libfluxus/src/TexturePainter.cpp \
-		libfluxus/src/Tree.cpp \
-		libfluxus/src/dada.cpp \
-		libfluxus/src/SearchPaths.cpp \
-		libfluxus/src/GLSLShader.cpp \
-		libfluxus/src/ShadowVolumeGen.cpp \
-		libfluxphysics/src/Physics.cpp \
-		src/AudioCollector.cpp \
-		src/JackClient.cpp \
-		src/TurtleBuilder.cpp \
-		src/GLEditor.cpp \
+Source = Split("src/GLEditor.cpp \
 		src/Utils.cpp \
-		src/OSCServer.cpp \
-		src/OSCCore.cpp \
 		src/Recorder.cpp \
+		src/FluxusMain.cpp \
+		src/dada.cpp \
 		src/main.cpp")
+		
 FluxusVersion = "HEAD"
 
 param_cast_test_src = """

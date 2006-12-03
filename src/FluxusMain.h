@@ -14,15 +14,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include <Renderer.h>
-#include <PolyPrimitive.h>
-#include <Physics.h>
-#include <SearchPaths.h>
 #include "GLEditor.h"
-#include "OSCServer.h"
 #include "Recorder.h"
-#include "AudioCollector.h"
-#include "Repl.h"
+//#include "Repl.h"
+#include "dada.h"
 
 using namespace fluxus;
 
@@ -46,33 +41,19 @@ public:
 	void Handle(unsigned char key, int button, int special, int state, int x, int y, int mod);
 	void Render();
 	void Reshape(int width, int height);
-	
-	void TickRecorder();
-	
+		
 	bool KeyPressed(char b);
 	
-	Renderer *GetRenderer() { return &m_Renderer; }
-	Physics *GetPhysics() { return &m_Physics; }
-
     string GetScriptFragment() { string temp=m_Script; m_Script=""; return temp; }
     void Dump(const string &Text) { cerr<<Text<<endl; }
     void ResetCamera();
     void LoadScript(const string &Filename);
-    void SourceScript(const string &Filename);
     void SetSaveName(const string &s) { m_SaveName[m_CurrentEditor]=s; }
     void SaveScript();
 	void StartDumpFrames(const string &Filename, const string &Type);
 	void EndDumpFrames();
 	void HideScript() { m_HideScript=!m_HideScript; }
-	void HideCursor() { m_ShowCursor=!m_ShowCursor; m_Renderer.ShowCursor(m_ShowCursor); }
-	void StartOSC(const string &port);
-	char TypeFromOSC(unsigned int index);
-	float NumberFromOSC(unsigned int index);
-	string StringFromOSC(unsigned int index);
-	bool MsgOSC(const string &token);
-	string GetLastMsg();
-	void StartOSCClient(const string &port);
-	void SendOSC(const string &msg, const vector<OSCData*> &args);
+	void HideCursor() { m_ShowCursor=!m_ShowCursor; }
 	void ShowLocators(bool s) { m_ShowLocators=s; }
 	void SetCurrentEditor(int s) { m_CurrentEditor=s; }
 	void SetInteractiveCamera(bool s) { m_InteractiveCamera=s; }
@@ -84,18 +65,13 @@ public:
     void LoadRecordedCode(const string &Filename) { m_Recorder.Load(Filename); }
     void SaveRecordedCode(const string &Filename) { m_Recorder.Save(Filename); }
 
-	void SetAudio(AudioCollector *s) { m_Audio=s; }
-
 	timeval GetTime() { return m_Time; }
 	
-	Repl * GetRepl() { return (Repl*)m_Editor[9]; }
-        void SwitchToRepl() { m_CurrentEditor = 9; }
+	//Repl * GetRepl() { return (Repl*)m_Editor[9]; }
+    //void SwitchToRepl() { m_CurrentEditor = 9; }
 
 protected:
-	Renderer m_Renderer;
-    Physics  m_Physics;
 	EventRecorder m_Recorder;
-	AudioCollector *m_Audio;
 	
 private:
 	void HandleImpl(unsigned char key, int button, int special, int state, int x, int y, int mod);
@@ -133,9 +109,6 @@ private:
 	bool m_ShowCursor;
 	bool m_InteractiveCamera;
 	timeval m_Time;
-	
-	Server *m_OSCServer;
-	Client *m_OSCClient;
 };
 
 };

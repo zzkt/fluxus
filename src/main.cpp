@@ -24,110 +24,114 @@
 #include <unistd.h>
 #include <cstdio>
 #include <string>
+#include <GL/glew.h>
 #include <GL/glut.h>
 #include <plt/scheme.h>
+#include "FluxusMain.h"
 
 using namespace std;
 
-static const string INIT_FILE=".fluxus.scm";
+static const string INIT_SCRIPT=".fluxus-plt.scm";
+static const string ENGINE_CALLBACK="(fluxus-frame-callback)";
+static const string RESHAPE_CALLBACK="fluxus-reshape-callback";
+static const string INPUT_CALLBACK="fluxus-input-callback";
+static const string INPUT_RELEASE_CALLBACK="fluxus-input-release-callback";
+static const string STARTUP_SCRIPT="fluxus-startup.scm";
 
-
+FluxusMain *app = NULL;
 Scheme_Env *scheme = scheme_basic_env();
 
+void RunScheme(const string &str)
+{	
+  	Scheme_Object *curout=NULL;
+ 	mz_jmp_buf * volatile save, fresh;
+	
+	save = scheme_current_thread->error_buf;
+    scheme_current_thread->error_buf = &fresh;
+	
+    if (scheme_setjmp(scheme_error_buf)) 
+	{
+		scheme_current_thread->error_buf = save;
+		//cerr<<"errroorrorororr"<<endl;
+    } 
+	else 
+	{
+		Scheme_Object *v = scheme_eval_string_all(str.c_str(), scheme, 1);
+		scheme_current_thread->error_buf = save;
+    }
+}
+
+
 void DisplayCallback()
-{
-	//binding->Fluxus->TickRecorder();
-    
-	string fragment = "(begin (display \"hello world\")(newline))";//binding->Fluxus->GetScriptFragment();
+{    
+	//glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	
+	string fragment = app->GetScriptFragment();
     if (fragment!="")
     {
-		scheme_eval_string(fragment.c_str(), scheme);
+		RunScheme(fragment);
     }
 	
-	//if (binding->Audio!=NULL) binding->Audio->GetFFT();
-	//binding->Fluxus->Render();	
+	RunScheme(ENGINE_CALLBACK);
+		
+	app->Render();	
 	glutSwapBuffers();
 }
 
 void ReshapeCallback(int width, int height)
 {
-	//binding->Fluxus->Reshape(width,height);
+	app->Reshape(width,height);
+	char code[256];
+	snprintf(code,256,"(%s %d %d)",RESHAPE_CALLBACK.c_str(),width,height);
+	RunScheme(code);
 }
 
 void KeyboardCallback(unsigned char key,int x, int y)
 {
-	//binding->Fluxus->Handle(key, -1, -1, -1, x, y, glutGetModifiers());
-	/*	
-	if (glutGetModifiers()&GLUT_ACTIVE_CTRL)
-	{
-		// pretty sure this is going to have to change...
-		switch(key)
-		{
-			case 6: glutFullScreen(); break; // f	
-			case 23: // w
-			{
-				glutReshapeWindow(640,480);
-				glutPositionWindow(100,100);
-			} 
-			break;
-			case 19: binding->Fluxus->SaveScript(); break; // s			
-			case 8: binding->Fluxus->HideScript(); break; // h
-			case 13: binding->Fluxus->HideCursor(); break; // m
-#ifndef __APPLE__
-			case 49: binding->Fluxus->SetCurrentEditor(0); break; // 1
-			case 0: binding->Fluxus->SetCurrentEditor(1); break; // 2
-			case 27: binding->Fluxus->SetCurrentEditor(2); break; // 3
-			case 28: binding->Fluxus->SetCurrentEditor(3); break; // 4
-			case 29: binding->Fluxus->SetCurrentEditor(4); break; // 5
-			case 30: binding->Fluxus->SetCurrentEditor(5); break; // 6
-			case 31: binding->Fluxus->SetCurrentEditor(6); break; // 7
-			case 127: binding->Fluxus->SetCurrentEditor(7); break; // 8
-			case 57: binding->Fluxus->SetCurrentEditor(8); break; // 9
-			case 48: binding->Fluxus->SetCurrentEditor(9); break; // 0
-#else
-			case 49: binding->Fluxus->SetCurrentEditor(0); break; // 1
-			case 50: binding->Fluxus->SetCurrentEditor(1); break; // 2
-			case 51: binding->Fluxus->SetCurrentEditor(2); break; // 3
-			case 52: binding->Fluxus->SetCurrentEditor(3); break; // 4
-			case 53: binding->Fluxus->SetCurrentEditor(4); break; // 5
-			case 54: binding->Fluxus->SetCurrentEditor(5); break; // 6
-			case 55: binding->Fluxus->SetCurrentEditor(6); break; // 7
-			case 56: binding->Fluxus->SetCurrentEditor(7); break; // 8
-			case 57: binding->Fluxus->SetCurrentEditor(8); break; // 9
-			case 48: binding->Fluxus->SetCurrentEditor(9); break; // 0
-#endif
-		}
-	}
-	*/
-	//binding->m_KeySet.insert(key);
+	app->Handle(key, -1, -1, -1, x, y, glutGetModifiers());
+
+	char code[256];
+	snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),key,-1,-1,-1,x,y,glutGetModifiers());
+	RunScheme(code);
 }
 
 void KeyboardUpCallback(unsigned char key,int x, int y)
 {
-	//binding->Fluxus->Handle(key, 0, 0, 1, x, y);
-	//binding->m_KeySet.erase(key);
+	char code[256];
+	snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_RELEASE_CALLBACK.c_str(),key,-1,-1,-1,x,y,0);
+	RunScheme(code);
 }
 
 void SpecialKeyboardCallback(int key,int x, int y)
 {
-	//binding->Fluxus->Handle(0, -1, key, -1, x, y, glutGetModifiers());
-	//binding->m_SpecialKeySet.insert(key);
+	app->Handle(0, -1, key, -1, x, y, glutGetModifiers());
+	char code[256];
+	snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),0,-1,key,-1,x,y,glutGetModifiers());
+	RunScheme(code);
 }
 
 void SpecialKeyboardUpCallback(int key,int x, int y)
 {
-	//binding->Fluxus->Handle( 0, 0, key, 1, x, y);
-	//binding->m_SpecialKeySet.erase(key);
+	//app->Handle( 0, 0, key, 1, x, y);
+	char code[256];
+	snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_RELEASE_CALLBACK.c_str(),0,-1,key,-1,x,y,glutGetModifiers());
+	RunScheme(code);
 }
 
 void MouseCallback(int button, int state, int x, int y)
 {
-	//binding->Fluxus->Handle(0, button, -1, state, x, y, 0);
+	app->Handle(0, button, -1, state, x, y, 0);
+	char code[256];
+	snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),0,button,-1,state,x,y,0);
+	RunScheme(code);
 }
 
 void MotionCallback(int x, int y)
 {
-	//binding->Fluxus->Handle(0, -1, -1, -1, x, y, 0);
+	app->Handle(0, -1, -1, -1, x, y, 0);
+	char code[256];
+	snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),0,-1,-1,-1,x,y,0);
+	RunScheme(code);
 }
 
 void IdleCallback()
@@ -135,103 +139,16 @@ void IdleCallback()
 	glutPostRedisplay();
 }
 
-
-void EngineCallback()
-{
-	//if (binding->FrameHook)
-	//	scm_c_catch(SCM_BOOL_T, 
-	//			   EngineCallbackThunk, (void*)NULL,
-	//			   ErrorHandler, (void*)"fluxus",ErrorHandler, (void*)"fluxus");		
-}
-
-char *Script;
-
-/*
-static void setup_repl_port() {
-	SCM v = scm_c_make_vector(5, SCM_BOOL_F);
-	scm_vector_set_x(v,scm_from_int(0),scm_c_eval_string("repl-princ"));
-	scm_vector_set_x(v,scm_from_int(1),scm_c_eval_string("repl-print"));
-	SCM p = scm_make_soft_port(v, scm_makfrom0str("w"));
-	scm_set_current_output_port(p);
-	scm_set_current_error_port(p);
-}
-*/
-
-
-/*
-void inner_main(void *context, int argc, char **argv)
-{
-	binding->RegisterProcs();
-	
-	FluxusPrimitiveBinding primbinding;
-	primbinding.RegisterProcs();	
-	FluxusRenderstateBinding statebinding;
-	statebinding.RegisterProcs();
-	FluxusGlobalstateBinding globalbinding;
-	globalbinding.RegisterProcs();
-	FluxusMathsBinding mathsbinding;
-	mathsbinding.RegisterProcs();
-	FluxusOSCBinding oscbinding;
-	oscbinding.RegisterProcs();
-	FluxusPDataBinding pdatabinding;
-	pdatabinding.RegisterProcs();
-	FluxusPhysicsBinding physicsbinding;
-	physicsbinding.RegisterProcs();
-	FluxusTurtleBinding turtlebinding;
-	turtlebinding.RegisterProcs();
-	FluxusAudioBinding audiobinding;
-	audiobinding.RegisterProcs();
-	FluxusIOBinding iobinding;
-	iobinding.RegisterProcs();
-	FluxusLightsBinding lightsbinding;
-	lightsbinding.RegisterProcs();
-
-        // FIXME handle errors well
-        SCM initFname = scm_sys_search_load_path(scm_makfrom0str("fluxus/init.scm"));
-        if (scm_is_string(initFname))
-                scm_primitive_load(initFname);
-        else 
-                cerr << "Couldn't find fluxus/init.scm script" << endl;
-	setup_repl_port();
-
-	
-    string fragment;
-
-    binding->FrameHook=scm_make_hook(scm_from_int(0));
-    scm_gc_protect_object(binding->FrameHook);
-    binding->Fluxus->GetRenderer()->SetEngineCallback(EngineCallback);
-
-	string Init = string(getenv("HOME"))+"/"+INIT_FILE;
-	scm_c_catch(SCM_BOOL_T,load_scm,(void*)Init.c_str(),ErrorHandler,(void*)"fluxus",ErrorHandler,(void*)"fluxus");
-
-	if (argc>1)
-	{
-		if (!strcmp(argv[1],"-x"))
-		{
-			binding->Fluxus->SourceScript(argv[2]); // just load and execute the script
-			binding->Fluxus->Handle(0, 0, 0, 0, 0, 0, 0); // kick the camera into existance
-			binding->Fluxus->HideScript(); // hide the cursor
-		}
-		else
-		{
-	    	binding->Fluxus->LoadScript(argv[1]);
-		}
-	}
-	
-	glutMainLoop();
-}
-*/
-
 int main(int argc, char *argv[])
 {
    // InitDada();
 	srand(time(NULL));
 		
-	glutInitWindowSize(720,576) ;
+	glutInitWindowSize(720,576);
+	app = new FluxusMain(720,576);
   	glutInit(&argc,argv);
 	glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH|GLUT_STENCIL);
   	glutCreateWindow("fluxus");
-//	binding = new FluxusBinding(768,576);
 	glutDisplayFunc(DisplayCallback);
 	glutReshapeFunc(ReshapeCallback);
 	glutKeyboardFunc(KeyboardCallback);
@@ -242,15 +159,37 @@ int main(int argc, char *argv[])
 	glutKeyboardUpFunc(KeyboardUpCallback);
 	glutSpecialUpFunc(SpecialKeyboardUpCallback);
 
-    //if(glewInit() != GLEW_OK)
-	//{
-	//	cerr << "ERROR Unable to check OpenGL extensions" << endl;
-	//	return false;
-	//}
 
-	//GLSLShader::Init();
+	FILE *file = fopen(STARTUP_SCRIPT.c_str(),"r");
+	if (file)
+	{
+		fseek(file,0,SEEK_END);
+		unsigned int size = ftell(file);
+		fseek(file,0,SEEK_SET);
+		char *code = new char[size+1];
+		fread(code,1,size,file);
+		fclose(file);
+		code[size]='\0';
+		RunScheme(code);
+		delete[] code;
+   
+   		if (argc>1) app->LoadScript(argv[1]);
+		
+		if(glewInit() != GLEW_OK)
+		{
+			cerr << "ERROR Unable to check OpenGL extensions" << endl;
+			return false;
+		}
 
-	glutMainLoop();
+		//GLSLShader::Init();
+	
+		glutMainLoop();
+	
+	}
+	else
+	{
+		cerr<<"fluxus cannot find "<<STARTUP_SCRIPT<<", quitting..."<<endl;
+	}
 	
 	return 0;
 }

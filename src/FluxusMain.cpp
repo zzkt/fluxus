@@ -21,15 +21,15 @@
 #include <GLUT/glut.h>
 #endif
 #include "Utils.h"
-#include "Repl.h"
+//#include "Repl.h"
+#include <iostream>
 
+using namespace std;
 using namespace fluxus;
 
 ////////////////////////////////////////////////////////////////
 
 FluxusMain::FluxusMain(int x, int y) :
-m_Physics(&m_Renderer),
-m_Audio(NULL),
 m_CameraMode(SCENE),
 m_CurrentEditor(0),
 m_Init(true),
@@ -50,18 +50,13 @@ m_Width(x),
 m_Height(y),
 m_HideScript(false),
 m_ShowCursor(true),	
-m_InteractiveCamera(true),
-m_OSCServer(NULL),
-m_OSCClient(NULL)
+m_InteractiveCamera(true)
 {
-	m_Renderer.SetDesiredFPS(100000);
-	Server::SetRecorder(&m_Recorder);
-
-	for(int i=0; i<9; i++) 
+	for(int i=0; i<10; i++) 
 	{
 		m_Editor[i] = new GLEditor();
 	}
-	m_Editor[9] = new Repl();
+	//m_Editor[9] = new Repl();
 }
 
 void FluxusMain::ResetCamera()
@@ -74,73 +69,11 @@ void FluxusMain::ResetCamera()
 	m_InteractiveCamera=true;
 }
 
-void FluxusMain::TickRecorder()
-{ 
-	if (m_Recorder.GetMode()==EventRecorder::PLAYBACK)
-	{
-		vector<RecorderMessage*> events;
-		m_Recorder.Get(events);
-		for (vector<RecorderMessage*>::iterator i=events.begin(); i!=events.end(); i++)
-		{
-			if ((*i)->Name=="fluxus_keyboardinput")
-			{
-				HandleImpl(static_cast<OSCInt*>((*i)->Data.m_Data[0])->Value, 
-						   static_cast<OSCInt*>((*i)->Data.m_Data[1])->Value, 
-						   static_cast<OSCInt*>((*i)->Data.m_Data[2])->Value,
-						   static_cast<OSCInt*>((*i)->Data.m_Data[3])->Value, 
-						   static_cast<OSCInt*>((*i)->Data.m_Data[4])->Value, 
-						   static_cast<OSCInt*>((*i)->Data.m_Data[5])->Value, 
-						   static_cast<OSCInt*>((*i)->Data.m_Data[6])->Value);
-			}
-		}
-	}
-	
-	if (m_Audio && m_Audio->IsProcessing())
-	{
-		m_Recorder.IncClock(m_Audio->BufferTime());
-	}
-	else
-	{
-		m_Recorder.UpdateClock();
-	}
-}
-
 void FluxusMain::Handle(unsigned char key, int button, int special, int state, int x, int y, int mod) 
 {
-	if (special==GLUT_KEY_F6) 
-	{ 
-		if (m_Recorder.GetMode()==EventRecorder::OFF)
-		{
-			m_Recorder.SetMode(EventRecorder::PLAYBACK); cerr<<"play"<<endl; 
-		}
-		else if (m_Recorder.GetMode()==EventRecorder::PLAYBACK)
-		{
-			m_Recorder.SetMode(EventRecorder::RECORD); cerr<<"record"<<endl; 
-		}
-	}
-	else if (special==GLUT_KEY_F7) { m_Recorder.SetMode(EventRecorder::OFF);; cerr<<"off"<<endl; }
-	else if (special==GLUT_KEY_F8) { m_Recorder.ResetClock(); cerr<<"reset clock"<<endl; }
-	else 
-	{
-		if (m_Recorder.GetMode()==EventRecorder::RECORD)
-		{
-			RecorderMessage *event = new RecorderMessage();
-			event->Name="fluxus_keyboardinput";
-			
-			// we make a fake osc message to record
-			event->Data.m_Data.push_back(new OSCInt(key));
-			event->Data.m_Data.push_back(new OSCInt(button));
-			event->Data.m_Data.push_back(new OSCInt(special));
-			event->Data.m_Data.push_back(new OSCInt(state));
-			event->Data.m_Data.push_back(new OSCInt(x));
-			event->Data.m_Data.push_back(new OSCInt(y));
-			event->Data.m_Data.push_back(new OSCInt(mod));
-
-			m_Recorder.Record(event);
-		}
-		
-		HandleImpl(key, button, special, state, x, y, mod);
-	}
+	// insert recorder stuff here...
+	
+	HandleImpl(key, button, special, state, x, y, mod);
 }
 
 // this function is used in arcball implementation
@@ -165,6 +98,47 @@ void FluxusMain::HandleImpl(unsigned char key, int button, int special, int stat
 	//cerr<<"key:"<<key<<" button:"<<button<<" special:"<<special<<" state:"<<state<<" x:"<<x<<" y:"<<y<<endl;
 	m_CurMouseX=x;
 	m_CurMouseY=y;
+	
+	if (mod&GLUT_ACTIVE_CTRL)
+	{
+		// pretty sure this is going to have to change...
+		switch(key)
+		{
+			case 6: glutFullScreen(); break; // f	
+			case 23: // w
+			{
+				glutReshapeWindow(640,480);
+				glutPositionWindow(100,100);
+			} 
+			break;
+			case 19: SaveScript(); break; // s			
+			case 8: HideScript(); break; // h
+			case 13: HideCursor(); break; // m
+#ifndef __APPLE__
+			case 49: SetCurrentEditor(0); break; // 1
+			case 0: SetCurrentEditor(1); break; // 2
+			case 27: SetCurrentEditor(2); break; // 3
+			case 28: SetCurrentEditor(3); break; // 4
+			case 29: SetCurrentEditor(4); break; // 5
+			case 30: SetCurrentEditor(5); break; // 6
+			case 31: SetCurrentEditor(6); break; // 7
+			case 127: SetCurrentEditor(7); break; // 8
+			case 57: SetCurrentEditor(8); break; // 9
+			case 48: SetCurrentEditor(9); break; // 0
+#else
+			case 49: SetCurrentEditor(0); break; // 1
+			case 50: SetCurrentEditor(1); break; // 2
+			case 51: SetCurrentEditor(2); break; // 3
+			case 52: SetCurrentEditor(3); break; // 4
+			case 53: SetCurrentEditor(4); break; // 5
+			case 54: SetCurrentEditor(5); break; // 6
+			case 55: SetCurrentEditor(6); break; // 7
+			case 56: SetCurrentEditor(7); break; // 8
+			case 57: SetCurrentEditor(8); break; // 9
+			case 48: SetCurrentEditor(9); break; // 0
+#endif
+		}
+	}
 	
 	if (key!=0 || special!=-1) 
 	{
@@ -282,10 +256,10 @@ void FluxusMain::HandleImpl(unsigned char key, int button, int special, int stat
 	
 	if (m_InteractiveCamera)
 	{
-		m_Renderer.GetCamera()->init();
-		m_Renderer.GetCamera()->translate(m_PosX,m_PosY,m_DisY);
-		(*m_Renderer.GetCamera()) *= (m_RotNow * m_RotStart).conjugate().toMatrix();
-		m_Renderer.SetOrthoZoom(m_DisY);
+		//m_Renderer.GetCamera()->init();
+		//m_Renderer.GetCamera()->translate(m_PosX,m_PosY,m_DisY);
+		//(*m_Renderer.GetCamera()) *= (m_RotNow * m_RotStart).conjugate().toMatrix();
+		//m_Renderer.SetOrthoZoom(m_DisY);
 	}
 }
 
@@ -314,7 +288,7 @@ void FluxusMain::Reshape(int width, int height)
 		m_Editor[n]->Reshape(width,height);
 	}
 	
-	m_Renderer.SetResolution(width,height);
+	//m_Renderer.SetResolution(width,height);
 	m_Width=width;
 	m_Height=height;
 	m_Init=true;
@@ -323,10 +297,6 @@ void FluxusMain::Reshape(int width, int height)
 void FluxusMain::Render()
 {		
 	gettimeofday(&m_Time,NULL);
-	m_Physics.Tick();
-	m_Renderer.Render();
-	if (m_OSCServer) m_OSCServer->PollRecorder();
- 	if (m_ShowLocators) m_Physics.Render();
 	if (!m_HideScript) m_Editor[m_CurrentEditor]->Render();
 	
 	if (m_Frame!=-1)
@@ -359,9 +329,7 @@ void FluxusMain::Render()
 
 void FluxusMain::LoadScript(const string &Filename) 
 { 
-	string Fullpath = SearchPaths::Get()->GetFullPath(Filename);
-
-	FILE *file=fopen(Fullpath.c_str(),"r");
+	FILE *file=fopen(Filename.c_str(),"r");
 	if (file)
 	{
 		fseek(file,0,SEEK_END);
@@ -371,14 +339,14 @@ void FluxusMain::LoadScript(const string &Filename)
 		if (size==0) 
 		{
 			fclose(file);
-			cerr<<"empty file: "<<Fullpath<<endl;
+			cerr<<"empty file: "<<Filename<<endl;
 			return;
 		}
 
 		if (size<0) 
 		{
 			fclose(file);
-			cerr<<"error loading file: "<<Fullpath<<" size: "<<size<<"??"<<endl;
+			cerr<<"error loading file: "<<Filename<<" size: "<<size<<"??"<<endl;
 			return;
 		}
 		
@@ -389,7 +357,7 @@ void FluxusMain::LoadScript(const string &Filename)
 			{
 				delete[] buffer;
 				fclose(file);
-				cerr<<"read error: "<<Fullpath<<endl;
+				cerr<<"read error: "<<Filename<<endl;
 				return;
 			}			
 			buffer[size]='\0';
@@ -405,19 +373,10 @@ void FluxusMain::LoadScript(const string &Filename)
 	}
 	else
 	{
-		cerr<<"couldn't load: "<<Fullpath<<endl;
+		cerr<<"couldn't load: "<<Filename<<endl;
 	}
 	
-	m_SaveName[m_CurrentEditor]=Fullpath; // just a precaution
-}
-
-// bad - need to move the interpreter around
-#include <libguile.h>
-
-void FluxusMain::SourceScript(const string &Filename) 
-{ 
-	string Fullpath = SearchPaths::Get()->GetFullPath(Filename);
-	scm_primitive_load(scm_from_locale_string(Fullpath.c_str()));
+	m_SaveName[m_CurrentEditor]=Filename; // just a precaution
 }
 
 void FluxusMain::SaveScript() 
@@ -437,160 +396,4 @@ void FluxusMain::SaveScript()
 	Dump("Saved ["+m_SaveName[m_CurrentEditor]+"]");
 	
 }
-
-void FluxusMain::StartOSC(const string &port)
-{
-	if (!m_OSCServer)
-	{
-		m_OSCServer = new Server(port);
-		m_OSCServer->Run();
-	}
-	else
-	{
-		m_OSCServer->SetPort(port);
-	}
-}
-
-char FluxusMain::TypeFromOSC(unsigned int index)
-{
-	if (!m_OSCServer) 
-	{
-		cerr<<"osc server not running..."<<endl;
-		return '0';
-	}
-	
-	vector<OSCData*> args;
-	if (m_OSCServer->GetArgs(args))
-	{
-		if (index<args.size())
-		{
-			return args[index]->Type();
-		}
-	}
-	return '0';
-}
-
-float FluxusMain::NumberFromOSC(unsigned int index) 
-{ 
-	if (!m_OSCServer) 
-	{
-		cerr<<"osc server not running..."<<endl;
-		return '0';
-	}
-	
-	vector<OSCData*> args;
-	if (m_OSCServer->GetArgs(args))
-	{
-		if (index<args.size())
-		{
-			if (args[index]->Type()=='i')
-			{
-				return (float)static_cast<OSCInt*>(args[index])->Value;
-			}
-			else if (args[index]->Type()=='f')
-			{
-				return static_cast<OSCFloat*>(args[index])->Value;
-			}
-		}
-	}
-	return 0;
-}
-
-string FluxusMain::StringFromOSC(unsigned int index) 
-{ 
-	if (!m_OSCServer) 
-	{
-		cerr<<"osc server not running..."<<endl;
-		return "";
-	}
-	
-	vector<OSCData*> args;
-	if (m_OSCServer->GetArgs(args))
-	{
-		if (index<args.size() && args[index]->Type()=='s')
-		{
-			return static_cast<OSCString*>(args[index])->Value;
-		}
-	}
-	return "";
-}
-
-bool FluxusMain::MsgOSC(const string &token) 
-{ 
-	if (!m_OSCServer) 
-	{
-		cerr<<"osc server not running..."<<endl;
-		return "";
-	}
-	
-	return m_OSCServer->SetMsg(token);	
-}
-
-string FluxusMain::GetLastMsg() 
-{ 
-	if (!m_OSCServer) 
-	{
-		cerr<<"osc server not running..."<<endl;
-		return "";
-	}
-	
-	return m_OSCServer->GetLastMsg();
-}
-
-void FluxusMain::StartOSCClient(const string &port)
-{
-	if (!m_OSCClient)
-	{
-		m_OSCClient = new Client();
-	}
-	
-	m_OSCClient->SetDestination(port.c_str());
-}
-
-void FluxusMain::SendOSC(const string &msg, const vector<OSCData*> &args)
-{
-	if (!m_OSCClient) 
-	{
-		cerr<<"osc client not running... (you need to set the osc destination)"<<endl;
-		return;
-	}
-	
-	m_OSCClient->Send(msg,args);
-}
-
-//////////////////////////////////////////////////////////////////////
-
-/*void FFTWindow::draw()
-{
-	
-	fl_color(FL_WHITE);
-	fl_rectf(0,0,w(),h());
-
-	if (m_Data)
-	{
-		fl_color(FL_BLACK);
-		char t[3];
-		int BarWidth = (int)(w()/16.0f);
-		for (int n=0; n<16; n++)
-		{
-			int x=n*BarWidth, y=h()-(int)(m_Data[n]*(float)h());
-			sprintf(t,"%d",n);
-			fl_font(FL_COURIER|FL_BOLD,10);
-			fl_draw(t, x, y);
-			fl_rectf(x, y, BarWidth, (int)(m_Data[n]*(float)h()));
-		}
-	}
-		
-	if (m_Data2)
-	{
-		fl_color(FL_BLUE);
-		int lstx=0, lsty=50, scale=h()/2;
-		for (int n=0; n<m_Length; n++)
-		{
-			fl_line(lstx, lsty, n, (int)((m_Data2[n]+1.0f)*scale));
-			lstx=n;
-			lsty=(int)((m_Data2[n]+1.0f)*scale);
-		}
-	}
-}*/
 
