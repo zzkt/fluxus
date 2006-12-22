@@ -1,12 +1,17 @@
 #include <assert.h>
-#include <escheme.h>
+#include <plt/escheme.h>
 #include "Common.h"
 #include "FluxusMaths.h"
-#include "../../../libfluxus/src/dada.h"
+#include "dada.h"
 
 using namespace FluxusMaths;
 using namespace Common;
 
+// description:
+// Multiplies a vector by a scalar value. 
+//
+// example:
+// (vmul (vector 1 2 3) 2)
 Scheme_Object *vmul(int argc, Scheme_Object **argv)
 {
 	ArgCheck("vmul", "vf", argc, argv);

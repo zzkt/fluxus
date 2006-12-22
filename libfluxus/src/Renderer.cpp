@@ -297,7 +297,7 @@ void Renderer::EndScene()
 	}
 	
 	m_LastTime=ThisTime;
-	if (m_Delta>0) m_Time+=m_Delta;
+	if (m_Delta>0) m_Time=ThisTime.tv_sec+ThisTime.tv_usec*0.000001f;
 }
 
 void Renderer::PostRender()

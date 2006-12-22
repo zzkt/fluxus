@@ -1,5 +1,5 @@
-#include "../../../libfluxus/src/Renderer.h"
-#include "../../../libfluxus/src/PolyPrimitive.h"
+#include "Renderer.h"
+#include "PolyPrimitive.h"
 
 class FluxusEngine
 {
@@ -14,15 +14,21 @@ public:
 	bool PushRenderer(unsigned int);
 	void PopRenderer();
 	void ResetRenderers();
-	fluxus::Renderer *GetCurrentRenderer();
+	fluxus::Renderer *Renderer();
 	void BeginScene(); 
 	void EndScene(); 
+	
+	void PushGrab(int id);
+	void PopGrab();
+	void ClearGrabStack();
+	fluxus::Primitive *Grabbed() { return m_Grabbed; }
 	
 	static fluxus::PolyPrimitive* StaticCube;
 	static fluxus::PolyPrimitive* StaticPlane;
 	static fluxus::PolyPrimitive* StaticSphere;
 	static fluxus::PolyPrimitive* StaticCylinder;
 	
+
 private:
 	FluxusEngine();
 	~FluxusEngine();
@@ -31,4 +37,6 @@ private:
 	
 	vector<fluxus::Renderer *> m_RendererVec;
 	deque<unsigned int> m_RendererStack;
+	deque<unsigned int> m_GrabStack;
+	fluxus::Primitive *m_Grabbed;
 };

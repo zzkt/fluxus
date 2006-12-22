@@ -36,7 +36,8 @@ static const string ENGINE_CALLBACK="(fluxus-frame-callback)";
 static const string RESHAPE_CALLBACK="fluxus-reshape-callback";
 static const string INPUT_CALLBACK="fluxus-input-callback";
 static const string INPUT_RELEASE_CALLBACK="fluxus-input-release-callback";
-static const string STARTUP_SCRIPT="fluxus-startup.scm";
+// todo: get rid of this path!!!
+static const string STARTUP_SCRIPT="/home/dave/code/fluxus-plt/fluxus/fluxus-startup.scm";
 
 FluxusMain *app = NULL;
 Scheme_Env *scheme = scheme_basic_env();
