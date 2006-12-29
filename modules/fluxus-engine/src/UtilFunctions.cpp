@@ -1,21 +1,21 @@
 #include <assert.h>
 #include <plt/escheme.h>
-#include "Common.h"
-#include "FluxusEngine.h"
-#include "FluxusUtils.h"
+#include "SchemeHelper.h"
+#include "Engine.h"
+#include "UtilFunctions.h"
 #include "Renderer.h"
 
-using namespace FluxusUtils;
-using namespace Common;
+using namespace UtilFunctions;
+using namespace SchemeHelper;
 
 Scheme_Object *time(int argc, Scheme_Object **argv)
 {
-	return scheme_make_double(FluxusEngine::Get()->Renderer()->GetTime());
+	return scheme_make_double(Engine::Get()->Renderer()->GetTime());
 }
 
 Scheme_Object *delta(int argc, Scheme_Object **argv)
 {
-	return scheme_make_double(FluxusEngine::Get()->Renderer()->GetDelta());
+	return scheme_make_double(Engine::Get()->Renderer()->GetDelta());
 }
 
 Scheme_Object *flxrnd(int argc, Scheme_Object **argv)
@@ -30,7 +30,7 @@ Scheme_Object *flxseed(int argc, Scheme_Object **argv)
 	return scheme_void;
 }
 
-void FluxusUtils::AddGlobals(Scheme_Env *env)
+void UtilFunctions::AddGlobals(Scheme_Env *env)
 {	
 	// renderstate operations
 	scheme_add_global("flxtime",scheme_make_prim_w_arity(time,"flxtime",0,0), env);

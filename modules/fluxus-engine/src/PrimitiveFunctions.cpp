@@ -1,10 +1,10 @@
 #include <assert.h>
 #include <plt/escheme.h>
-#include "FluxusEngine.h"
-#include "FluxusPrimitives.h"
+#include "Engine.h"
+#include "PrimitiveFunctions.h"
 #include "dada.h"
 #include "GraphicsUtils.h"
-#include "Common.h"
+#include "SchemeHelper.h"
 #include "LinePrimitive.h"
 #include "TextPrimitive.h"
 #include "ParticlePrimitive.h"
@@ -12,15 +12,15 @@
 #include "PixelPrimitive.h"
 #include "BlobbyPrimitive.h"
 
-using namespace FluxusPrimitives;
+using namespace PrimitiveFunctions;
 using namespace fluxus;
-using namespace Common;
+using namespace SchemeHelper;
 
 Scheme_Object *build_cube(int argc, Scheme_Object **argv)
 {
 	PolyPrimitive *BoxPrim = new PolyPrimitive(PolyPrimitive::QUADS);
     MakeCube(BoxPrim);
-    return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(BoxPrim));    
+    return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(BoxPrim));    
 }
 
 
@@ -29,15 +29,15 @@ Scheme_Object *build_nurbs(int argc, Scheme_Object **argv)
 	ArgCheck("build-nurbs", "i", argc, argv);
 	NURBSPrimitive *Prim = new NURBSPrimitive();
 	Prim->Resize(IntFromScheme(argv[0]));
-	return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(Prim));
+	return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(Prim));
 }
 
 Scheme_Object *build_polygons(int argc, Scheme_Object **argv)
 {
 	ArgCheck("build-polygons", "ii", argc, argv);
-	PolyPrimitive *Prim = new PolyPrimitive((PolyPrimitive::Type)IntFromScheme(argv[0]));
-	Prim->Resize(IntFromScheme(argv[1]));
-    return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(Prim));
+	PolyPrimitive *Prim = new PolyPrimitive((PolyPrimitive::Type)IntFromScheme(argv[1]));
+	Prim->Resize(IntFromScheme(argv[0]));
+    return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(Prim));
 }
 
 Scheme_Object *build_sphere(int argc, Scheme_Object **argv)
@@ -45,26 +45,22 @@ Scheme_Object *build_sphere(int argc, Scheme_Object **argv)
 	ArgCheck("build-sphere", "ii", argc, argv);
 	PolyPrimitive *SphPrim = new PolyPrimitive(PolyPrimitive::TRILIST);
     MakeSphere(SphPrim, 1, IntFromScheme(argv[0]), IntFromScheme(argv[1]));
-    return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(SphPrim));
+    return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(SphPrim));
 }
 
 Scheme_Object *build_plane(int argc, Scheme_Object **argv)
 {
-	ArgCheck("build-plane", "ii", argc, argv);
 	PolyPrimitive *PlanePrim = new PolyPrimitive(PolyPrimitive::QUADS);
-	if (argc==0)
-	{
-		MakePlane(PlanePrim);
-   		return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(PlanePrim));
-	}
-	else if (argc==2)
-	{
-    	MakePlane(PlanePrim,IntFromScheme(argv[0]),IntFromScheme(argv[1]));
-    	return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(PlanePrim));
-	}
-	
-	cerr<<"build-plane takes 0 or 2 arguments"<<endl;
-	return scheme_void;
+	MakePlane(PlanePrim);
+   	return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(PlanePrim));
+}
+
+Scheme_Object *build_seg_plane(int argc, Scheme_Object **argv)
+{
+	ArgCheck("build-seg-plane", "ii", argc, argv);
+	PolyPrimitive *PlanePrim = new PolyPrimitive(PolyPrimitive::QUADS);	
+    MakePlane(PlanePrim,IntFromScheme(argv[0]),IntFromScheme(argv[1]));
+    return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(PlanePrim));
 }
 
 Scheme_Object *build_cylinder(int argc, Scheme_Object **argv)
@@ -72,7 +68,7 @@ Scheme_Object *build_cylinder(int argc, Scheme_Object **argv)
 	ArgCheck("build-cylinder", "ii", argc, argv);
 	PolyPrimitive *CylPrim = new PolyPrimitive(PolyPrimitive::TRILIST);
     MakeCylinder(CylPrim, 1, 1, IntFromScheme(argv[0]), IntFromScheme(argv[1]));
-    return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(CylPrim));
+    return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(CylPrim));
 }
 
 Scheme_Object *build_line(int argc, Scheme_Object **argv)
@@ -80,20 +76,20 @@ Scheme_Object *build_line(int argc, Scheme_Object **argv)
 	ArgCheck("build-line", "i", argc, argv);
 	LinePrimitive *Prim = new LinePrimitive();
 	Prim->Resize(IntFromScheme(argv[0]));
-    return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(Prim));
+    return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(Prim));
 }
 
 Scheme_Object *build_text(int argc, Scheme_Object **argv)
 {
 	ArgCheck("build-text", "s", argc, argv);
 	
-	char *text=SCHEME_BYTE_STR_VAL(argv[0]);
+	char *text=StringFromScheme(argv[0]);
 	
 	// 16*16 grid of letters
 	TextPrimitive *TextPrim = new TextPrimitive(16/256.0f,16/256.0f,16,0);
 	TextPrim->SetText(text,20,-20,0.018);
 	
-	return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(TextPrim));
+	return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(TextPrim));
 }
 	
 Scheme_Object *build_nurbs_sphere(int argc, Scheme_Object **argv)
@@ -101,7 +97,7 @@ Scheme_Object *build_nurbs_sphere(int argc, Scheme_Object **argv)
 	ArgCheck("build-nurbs-sphere", "ii", argc, argv);
 	NURBSPrimitive *SphPrim = new NURBSPrimitive;
     MakeNURBSSphere(SphPrim, 1, IntFromScheme(argv[0]), IntFromScheme(argv[1]));
-    return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(SphPrim));
+    return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(SphPrim));
 }
 
 Scheme_Object *build_nurbs_plane(int argc, Scheme_Object **argv)
@@ -109,7 +105,7 @@ Scheme_Object *build_nurbs_plane(int argc, Scheme_Object **argv)
 	ArgCheck("build-nurbs-plane", "ii", argc, argv);
 	NURBSPrimitive *Prim = new NURBSPrimitive;
     MakeNURBSPlane(Prim, IntFromScheme(argv[0]), IntFromScheme(argv[1]));
-    return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(Prim));
+    return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(Prim));
 }
 
 Scheme_Object *build_particles(int argc, Scheme_Object **argv)
@@ -121,25 +117,25 @@ Scheme_Object *build_particles(int argc, Scheme_Object **argv)
 	{
 		Prim->AddParticle(dVector(0,0,0),dColour(0,0,0),dVector(0.1,0.1,0.1));
 	}
-    return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(Prim));
+    return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(Prim));
 }
 
 Scheme_Object *build_locator(int argc, Scheme_Object **argv)
 {
 	LocatorPrimitive *Prim = new LocatorPrimitive();
-    return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(Prim));
+    return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(Prim));
 }
 
 Scheme_Object *build_pixels(int argc, Scheme_Object **argv)
 {
 	ArgCheck("build-pixels", "ii", argc, argv);
 	PixelPrimitive *Prim = new PixelPrimitive(IntFromScheme(argv[0]), IntFromScheme(argv[1]));
-    return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(Prim));
+    return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(Prim));
 }
 
 Scheme_Object *upload_pixels(int argc, Scheme_Object **argv)
 {	
-	Primitive *Grabbed=FluxusEngine::Get()->Renderer()->Grabbed();
+	Primitive *Grabbed=Engine::Get()->Renderer()->Grabbed();
 	if (Grabbed) 
 	{
 		// only if this is a pixel primitive
@@ -158,7 +154,7 @@ Scheme_Object *upload_pixels(int argc, Scheme_Object **argv)
 Scheme_Object *pixels2texture(int argc, Scheme_Object **argv)
 {		
 	ArgCheck("pixels->texture", "i", argc, argv);
-	Primitive *Prim=FluxusEngine::Get()->Renderer()->GetPrimitive(IntFromScheme(argv[0]));
+	Primitive *Prim=Engine::Get()->Renderer()->GetPrimitive(IntFromScheme(argv[0]));
 	if (Prim) 
 	{
 		// only if this is a pixel primitive
@@ -188,36 +184,37 @@ Scheme_Object *build_blobby(int argc, Scheme_Object **argv)
 		Prim->AddInfluence(dVector(0,0,0),0);
 	}
 	
-    return scheme_make_integer_value(FluxusEngine::Get()->Renderer()->AddPrimitive(Prim));
+    return scheme_make_integer_value(Engine::Get()->Renderer()->AddPrimitive(Prim));
 }
 
 Scheme_Object *draw_instance(int argc, Scheme_Object **argv)
 {    	
-    FluxusEngine::Get()->Renderer()->RenderPrimitive(FluxusEngine::Get()->Renderer()->GetPrimitive(IntFromScheme(argv[0])));
+	ArgCheck("draw-instance", "i", argc, argv);
+    Engine::Get()->Renderer()->RenderPrimitive(Engine::Get()->Renderer()->GetPrimitive(IntFromScheme(argv[0])));
     return scheme_void;
 }
 
 Scheme_Object *draw_cube(int argc, Scheme_Object **argv)
 {    	
-    FluxusEngine::Get()->Renderer()->RenderPrimitive(FluxusEngine::StaticCube);
+    Engine::Get()->Renderer()->RenderPrimitive(Engine::StaticCube);
     return scheme_void;
 }
 
 Scheme_Object *draw_plane(int argc, Scheme_Object **argv)
 {    	
-    FluxusEngine::Get()->Renderer()->RenderPrimitive(FluxusEngine::StaticPlane);
+    Engine::Get()->Renderer()->RenderPrimitive(Engine::StaticPlane);
     return scheme_void;
 }
 
 Scheme_Object *draw_sphere(int argc, Scheme_Object **argv)
 {    	
-    FluxusEngine::Get()->Renderer()->RenderPrimitive(FluxusEngine::StaticSphere);
+    Engine::Get()->Renderer()->RenderPrimitive(Engine::StaticSphere);
     return scheme_void;
 }
 
 Scheme_Object *draw_cylinder(int argc, Scheme_Object **argv)
 {    	
-    FluxusEngine::Get()->Renderer()->RenderPrimitive(FluxusEngine::StaticCylinder);
+    Engine::Get()->Renderer()->RenderPrimitive(Engine::StaticCylinder);
     return scheme_void;
 }
 
@@ -227,27 +224,28 @@ Scheme_Object *destroy(int argc, Scheme_Object **argv)
 	int name=0;
 	name=IntFromScheme(argv[0]);	
 	
-	Primitive *p=FluxusEngine::Get()->Renderer()->GetPrimitive(name);
+	Primitive *p=Engine::Get()->Renderer()->GetPrimitive(name);
 	if (p)
 	{
     	if (p->IsPhysicalHint())
     	{
     		//Fluxus->GetPhysics()->Free(name);
     	}
-    	FluxusEngine::Get()->Renderer()->RemovePrimitive(name);
+    	Engine::Get()->Renderer()->RemovePrimitive(name);
     }
 
     return scheme_void;
 }
 
-void FluxusPrimitives::AddGlobals(Scheme_Env *env)
+void PrimitiveFunctions::AddGlobals(Scheme_Env *env)
 {	
 	scheme_add_global("draw-cube", scheme_make_prim_w_arity(draw_cube, "draw-cube", 0, 0), env);
 	scheme_add_global("build-cube", scheme_make_prim_w_arity(build_cube, "build-cube", 0, 0), env);
 	scheme_add_global("build-polygons", scheme_make_prim_w_arity(build_polygons, "build-polygons", 2, 2), env);
 	scheme_add_global("build-nurbs", scheme_make_prim_w_arity(build_nurbs, "build-nurbs", 1, 1), env);
 	scheme_add_global("build-sphere", scheme_make_prim_w_arity(build_sphere, "build-sphere", 2, 2), env);
-	scheme_add_global("build-plane", scheme_make_prim_w_arity(build_plane, "build-plane", 0, 2), env);
+	scheme_add_global("build-plane", scheme_make_prim_w_arity(build_plane, "build-plane", 0, 0), env);
+	scheme_add_global("build-seg-plane", scheme_make_prim_w_arity(build_seg_plane, "build-seg-plane", 2, 2), env);
 	scheme_add_global("build-cylinder", scheme_make_prim_w_arity(build_cylinder, "build-cylinder", 2, 2), env);
 	scheme_add_global("build-line", scheme_make_prim_w_arity(build_line, "build-line", 1, 1), env);
 	scheme_add_global("build-text", scheme_make_prim_w_arity(build_text, "build-text", 1, 1), env);
@@ -259,7 +257,7 @@ void FluxusPrimitives::AddGlobals(Scheme_Env *env)
 	scheme_add_global("pload-pixels", scheme_make_prim_w_arity(upload_pixels, "upload-pixels", 0, 0), env);
 	scheme_add_global("pixels->texture", scheme_make_prim_w_arity(pixels2texture, "pixels->texture", 1, 1), env);
 	scheme_add_global("build-blobby", scheme_make_prim_w_arity(build_blobby, "build-blobby", 3, 3), env);
-	scheme_add_global("draw-instance", scheme_make_prim_w_arity(draw_instance, "draw-instance", 0, 0), env);
+	scheme_add_global("draw-instance", scheme_make_prim_w_arity(draw_instance, "draw-instance", 1, 1), env);
 	scheme_add_global("draw-cube", scheme_make_prim_w_arity(draw_cube, "draw-cube", 0, 0), env);
 	scheme_add_global("draw-plane", scheme_make_prim_w_arity(draw_plane, "draw-plane", 0, 0), env);
 	scheme_add_global("draw-sphere", scheme_make_prim_w_arity(draw_sphere, "draw-sphere", 0, 0), env);

@@ -1,6 +1,6 @@
 #include <plt/escheme.h>
 
-namespace FluxusUtils
+namespace TurtleFunctions
 {
 	void AddGlobals(Scheme_Env *env);
 }

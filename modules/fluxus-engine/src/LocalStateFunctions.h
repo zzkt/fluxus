@@ -1,6 +1,6 @@
 #include <plt/escheme.h>
 
-namespace FluxusGlobalState
+namespace LocalStateFunctions
 {
 	void AddGlobals(Scheme_Env *env);
 }

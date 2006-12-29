@@ -1,19 +1,19 @@
 #include <assert.h>
 #include <plt/escheme.h>
-#include "Common.h"
-#include "FluxusEngine.h"
-#include "FluxusPData.h"
+#include "SchemeHelper.h"
+#include "Engine.h"
+#include "PDataFunctions.h"
 #include "Renderer.h"
 
-using namespace FluxusPData;
-using namespace Common;
+using namespace PDataFunctions;
+using namespace SchemeHelper;
 using namespace fluxus;
 
 Scheme_Object *pdata_get(int argc, Scheme_Object **argv)
 {
 	ArgCheck("pdata-get", "si", argc, argv);		
 	
-	Primitive *Grabbed=FluxusEngine::Get()->Renderer()->Grabbed();    
+	Primitive *Grabbed=Engine::Get()->Renderer()->Grabbed();    
 	if (Grabbed) 
 	{
 		char *name=StringFromScheme(argv[0]);
@@ -48,7 +48,7 @@ Scheme_Object *pdata_get(int argc, Scheme_Object **argv)
 Scheme_Object *pdata_set(int argc, Scheme_Object **argv)
 {
 	ArgCheck("pdata-get", "si?", argc, argv);		
-    Primitive *Grabbed=FluxusEngine::Get()->Renderer()->Grabbed();    
+    Primitive *Grabbed=Engine::Get()->Renderer()->Grabbed();    
 	if (Grabbed) 
 	{
 		size_t ssize=0;
@@ -92,7 +92,7 @@ Scheme_Object *pdata_set(int argc, Scheme_Object **argv)
 Scheme_Object *pdata_add(int argc, Scheme_Object **argv)
 {
 	ArgCheck("pdata-add", "ss", argc, argv);			
-    Primitive *Grabbed=FluxusEngine::Get()->Renderer()->Grabbed();    
+    Primitive *Grabbed=Engine::Get()->Renderer()->Grabbed();    
 	if (Grabbed) 
 	{
 		char *names=StringFromScheme(argv[0]);
@@ -126,7 +126,7 @@ Scheme_Object *pdata_op(int argc, Scheme_Object **argv)
 	ArgCheck("pdata-op", "ss?", argc, argv);			
     PData *ret=NULL;
 	
-    Primitive *Grabbed=FluxusEngine::Get()->Renderer()->Grabbed();    
+    Primitive *Grabbed=Engine::Get()->Renderer()->Grabbed();    
 	if (Grabbed) 
 	{
 		char *op=StringFromScheme(argv[0]);
@@ -239,7 +239,7 @@ Scheme_Object *pdata_copy(int argc, Scheme_Object **argv)
 {
  	ArgCheck("pdata-copy", "ss", argc, argv);			
   	
-	Primitive *Grabbed=FluxusEngine::Get()->Renderer()->Grabbed();    
+	Primitive *Grabbed=Engine::Get()->Renderer()->Grabbed();    
 	if (Grabbed) 
 	{
 		char *source=StringFromScheme(argv[0]);
@@ -252,7 +252,7 @@ Scheme_Object *pdata_copy(int argc, Scheme_Object **argv)
 
 Scheme_Object *pdata_size(int argc, Scheme_Object **argv)
 {
-    Primitive *Grabbed=FluxusEngine::Get()->Renderer()->Grabbed();    
+    Primitive *Grabbed=Engine::Get()->Renderer()->Grabbed();    
 	if (Grabbed) 
 	{
 		return scheme_make_integer_value(Grabbed->Size());
@@ -268,12 +268,12 @@ Scheme_Object *finalise(int argc, Scheme_Object **argv)
 Scheme_Object *recalc_normals(int argc, Scheme_Object **argv)
 {
  	ArgCheck("recalc-normals", "i", argc, argv);			
-	Primitive *Grabbed=FluxusEngine::Get()->Renderer()->Grabbed();    
+	Primitive *Grabbed=Engine::Get()->Renderer()->Grabbed();    
 	if (Grabbed) Grabbed->RecalculateNormals(IntFromScheme(argv[0]));
 	return scheme_void;
 }
 
-void FluxusPData::AddGlobals(Scheme_Env *env)
+void PDataFunctions::AddGlobals(Scheme_Env *env)
 {	
 	scheme_add_global("pdata-get", scheme_make_prim_w_arity(pdata_get, "pdata-get", 2, 2), env);
 	scheme_add_global("pdata-set", scheme_make_prim_w_arity(pdata_set, "pdata-set", 3, 3), env);

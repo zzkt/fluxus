@@ -1,0 +1,41 @@
+###############################################################
+# SConscript for fluxus-engine
+#
+# This is the main PLT module for fluxus, containing all core
+# graphics functions
+
+import os, os.path
+
+Target       = "fluxus-engine.so"
+
+Import("Prefix", "CollectsLocation", "BinaryModulesLocation")
+
+Install      = BinaryModulesLocation
+LibPaths     = Split("../../libfluxus/ /usr/local/lib /usr/local/lib/plt /usr/lib")
+IncludePaths = Split("../../libfluxus/src /usr/local/include /usr/include src")
+Libs =  Split("GL GLU glut GLEW fluxus mzdyn png ode")
+
+Source = Split("src/Engine.cpp \
+		src/FluxusEngine.cpp \
+		src/SchemeHelper.cpp \
+        src/GlobalStateFunctions.cpp \
+		src/LocalStateFunctions.cpp \
+		src/MathsFunctions.cpp \
+		src/PrimitiveFunctions.cpp \
+		src/PDataFunctions.cpp \
+		src/UtilFunctions.cpp \
+		src/TurtleFunctions.cpp \
+		src/LightFunctions.cpp \
+		src/PhysicsFunctions.cpp \
+		src/TurtleBuilder.cpp")
+		
+env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC',
+		  LIBPATH = LibPaths,
+		  CPPPATH = IncludePaths,
+		  LIBS = Libs,
+		  SHLIBPREFIX = "")
+
+Default(env.SharedLibrary(source = Source, target = Target))
+	
+env.Install(Install, Target)
+env.Alias('install', Prefix)

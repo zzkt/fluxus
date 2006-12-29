@@ -1,0 +1,24 @@
+###############################################################
+# Top level SConscript for the fluxus PLT modules
+#
+# Sets up common stuff, and calls each module SConscript 
+
+import sys
+
+# we cant (or I can find out how to) link against external .o files with 
+# vanilla scons, so I have to rename it to make it a static library
+#sys.command("cp "+Prefix+"/lib/plt/mzdyn.o modules/libmzdyn.a")
+
+# Don't know what the name for this for osx is - probably doesn't matter, but 
+# we should use the convention PLT uses (I guess it's used for a networked 
+# multi architecture install)
+Arch = "/i386-linux"
+
+Import("Prefix")
+CollectsLocation = Prefix + "/lib/plt/collects/fluxus"
+BinaryModulesLocation = CollectsLocation + "/compiled/native" + Arch
+
+SConscript(dirs = ["fluxus-engine",
+				   "scheme"], 
+           exports = ["Prefix", "CollectsLocation", "BinaryModulesLocation"])
+

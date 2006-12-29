@@ -1,0 +1,17 @@
+###############################################################
+# SConscript for the Scheme PLT modules
+#
+# Should be ok for cross platform
+
+Import("Prefix", "CollectsLocation", "BinaryModulesLocation")
+
+Scripts    = ["fluxus-canvas.ss", 
+			  "fluxus-obj-import.ss", 
+			  "fluxus-camera.ss",
+			  "autodoc.ss" ]
+
+Install      = CollectsLocation
+
+env = Environment()
+env.Install(Install, Scripts)
+env.Alias('install', Install)

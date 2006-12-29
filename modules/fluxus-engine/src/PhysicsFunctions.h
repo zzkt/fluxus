@@ -1,6 +1,6 @@
 #include <plt/escheme.h>
 
-namespace FluxusMaths
+namespace PhysicsFunctions
 {
 	void AddGlobals(Scheme_Env *env);
 }

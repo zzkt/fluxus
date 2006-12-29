@@ -3,7 +3,7 @@
 #include "dada.h"
 #include "Renderer.h"
 
-namespace Common
+namespace SchemeHelper
 {
 	// utility functions to make life easier for binding, and also to allow us to 
 	// replace the plt functions used for optimisation later, without having 
@@ -19,5 +19,4 @@ namespace Common
 	dQuat QuatFromScheme(Scheme_Object *src);
 	dMatrix MatrixFromScheme(Scheme_Object *src);
 	void ArgCheck(const std::string &funcname, const std::string &format, int argc, Scheme_Object **argv);
-	fluxus::State *State();
 }

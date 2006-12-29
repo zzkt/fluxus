@@ -1,6 +1,6 @@
 #include <plt/escheme.h>
 
-namespace FluxusPData
+namespace PDataFunctions
 {
 	void AddGlobals(Scheme_Env *env);
 }

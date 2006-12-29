@@ -1,17 +1,16 @@
-#                                                              -*- python -*-
+###############################################################
+# SConscript for libfluxus
+#
+# Builds a static library of the core rendering code, no need
+# to install, as this is linked to fluxus-engine statically
 
 import os, os.path
 
 Target       = "libfluxus.a"
 
-Prefix = "/usr/local"
-Install      = Prefix + "/lib"
 LibPaths     = Split("/usr/local/lib /usr/lib")
 IncludePaths = Split("/usr/local/include /usr/include src")
 
-# First member of each list is a library, second - a header or headers list
-# to be passed to the CheckLibWithHeader(...) at configure time.
-# We may add extra libraries later on per platform basis
 LibList      = [["m", "math.h"],
 		["jpeg", ["stdio.h", "stdlib.h", "jpeglib.h"]],
 		["tiff", "tiff.h"],
@@ -73,22 +72,3 @@ else:
 				 ["SM", "X11/Xlib.h"], 
 				 ["ICE", "X11/Xlib.h"]] + LibList;
 	
-if not GetOption('clean'):
-	print '--------------------------------------------------------'		
-	print 'Fluxus: Configuring Build Environment'
-	print '--------------------------------------------------------'		
-	conf = Configure(env)
-	
-	# all libraries are required, but they can be checked for independently
-	# (hence autoadd=0), which allows us to speed up the tests ...
-	for (lib,headers) in LibList:
-		if not conf.CheckLibWithHeader(lib, headers, 'C', autoadd = 1):
-			print "ERROR: '%s' must be installed!" % (lib)
-			Exit(1)		
-		
-	env = conf.Finish()
-	# ... but we shouldn't forget to add them to LIBS manually
-	env.Replace(LIBS = [rec[0] for rec in LibList])
-	
-env.Install(Install, Target)
-env.Alias('install', Prefix)

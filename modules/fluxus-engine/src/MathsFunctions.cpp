@@ -1,11 +1,11 @@
 #include <assert.h>
 #include <plt/escheme.h>
-#include "Common.h"
-#include "FluxusMaths.h"
+#include "SchemeHelper.h"
+#include "MathsFunctions.h"
 #include "dada.h"
 
-using namespace FluxusMaths;
-using namespace Common;
+using namespace MathsFunctions;
+using namespace SchemeHelper;
 
 // description:
 // Multiplies a vector by a scalar value. 
@@ -219,7 +219,7 @@ Scheme_Object *qconjugate(int argc, Scheme_Object **argv)
 	return FloatsToScheme(QuatFromScheme(argv[0]).conjugate().arr(),4);
 }
 
-void FluxusMaths::AddGlobals(Scheme_Env *env)
+void MathsFunctions::AddGlobals(Scheme_Env *env)
 {	
 	scheme_add_global("vmul", scheme_make_prim_w_arity(vmul, "vmul", 2, 2), env);
 	scheme_add_global("vadd", scheme_make_prim_w_arity(vadd, "vadd", 2, 2), env);

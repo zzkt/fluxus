@@ -1,26 +1,26 @@
 #include <assert.h>
-#include "Common.h"
-#include "FluxusEngine.h"
+#include "SchemeHelper.h"
+#include "Engine.h"
 
 using namespace std;
-using namespace Common;
+using namespace SchemeHelper;
 
-float Common::FloatFromScheme(Scheme_Object *ob)
+float SchemeHelper::FloatFromScheme(Scheme_Object *ob)
 {
 	return (float)scheme_real_to_double(ob);
 }
 
-int Common::IntFromScheme(Scheme_Object *ob)
+int SchemeHelper::IntFromScheme(Scheme_Object *ob)
 {
 	return (int)scheme_real_to_double(ob);
 }
 
-char *Common::StringFromScheme(Scheme_Object *ob)
+char *SchemeHelper::StringFromScheme(Scheme_Object *ob)
 {
 	return scheme_utf8_encode_to_buffer(SCHEME_CHAR_STR_VAL(ob),SCHEME_CHAR_STRLEN_VAL(ob),NULL,0);
 }
 
-void Common::FloatsFromScheme(Scheme_Object *src, float *dst, unsigned int size)
+void SchemeHelper::FloatsFromScheme(Scheme_Object *src, float *dst, unsigned int size)
 {
 	assert(size==SCHEME_VEC_SIZE(src));
 	Scheme_Object **array = SCHEME_VEC_ELS(src);
@@ -31,7 +31,7 @@ void Common::FloatsFromScheme(Scheme_Object *src, float *dst, unsigned int size)
 	}
 }
 
-Scheme_Object *Common::FloatsToScheme(float *src, unsigned int size)
+Scheme_Object *SchemeHelper::FloatsToScheme(float *src, unsigned int size)
 {
 	Scheme_Object *ret = scheme_make_vector(size, NULL);
 	Scheme_Object **array = SCHEME_VEC_ELS(ret);
@@ -42,35 +42,35 @@ Scheme_Object *Common::FloatsToScheme(float *src, unsigned int size)
 	return ret;
 }
 
-dVector Common::VectorFromScheme(Scheme_Object *src)
+dVector SchemeHelper::VectorFromScheme(Scheme_Object *src)
 {
 	dVector ret;
 	FloatsFromScheme(src,ret.arr(),3);
 	return ret;
 }
 
-dColour Common::ColourFromScheme(Scheme_Object *src)
+dColour SchemeHelper::ColourFromScheme(Scheme_Object *src)
 {
 	dColour ret;
 	FloatsFromScheme(src,ret.arr(),3);
 	return ret;
 }
 
-dQuat Common::QuatFromScheme(Scheme_Object *src)
+dQuat SchemeHelper::QuatFromScheme(Scheme_Object *src)
 {
 	dQuat ret;
 	FloatsFromScheme(src,ret.arr(),4);
 	return ret;
 }
 
-dMatrix Common::MatrixFromScheme(Scheme_Object *src)
+dMatrix SchemeHelper::MatrixFromScheme(Scheme_Object *src)
 {
 	dMatrix ret;
 	FloatsFromScheme(src,ret.arr(),16);
 	return ret;
 }
 
-void Common::ArgCheck(const string &funcname, const string &format, int argc, Scheme_Object **argv)
+void SchemeHelper::ArgCheck(const string &funcname, const string &format, int argc, Scheme_Object **argv)
 {
 	// wrong number of arguments, could mean optional arguments for this function, 
 	// just give up in this case for now...
@@ -121,11 +121,3 @@ void Common::ArgCheck(const string &funcname, const string &format, int argc, Sc
 
 }
 
-fluxus::State *Common::State()
-{
-    if (FluxusEngine::Get()->Grabbed()) 
-	{
-		return FluxusEngine::Get()->Grabbed()->GetState();
-	}
-	return FluxusEngine::Get()->Renderer()->GetState();
-}
