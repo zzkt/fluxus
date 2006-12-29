@@ -22,9 +22,9 @@ char *SchemeHelper::StringFromScheme(Scheme_Object *ob)
 
 void SchemeHelper::FloatsFromScheme(Scheme_Object *src, float *dst, unsigned int size)
 {
-	assert(size==SCHEME_VEC_SIZE(src));
+	assert(size==(unsigned int)SCHEME_VEC_SIZE(src));
 	Scheme_Object **array = SCHEME_VEC_ELS(src);
-	for (int n=0; n<size; n++)
+	for (unsigned int n=0; n<size; n++)
 	{
 	
 		dst[n]=scheme_real_to_double(array[n]);
@@ -35,7 +35,7 @@ Scheme_Object *SchemeHelper::FloatsToScheme(float *src, unsigned int size)
 {
 	Scheme_Object *ret = scheme_make_vector(size, NULL);
 	Scheme_Object **array = SCHEME_VEC_ELS(ret);
-	for (int n=0; n<size; n++)
+	for (unsigned int n=0; n<size; n++)
 	{
 		array[n]=scheme_make_double(src[n]);
 	}
@@ -75,9 +75,9 @@ void SchemeHelper::ArgCheck(const string &funcname, const string &format, int ar
 	// wrong number of arguments, could mean optional arguments for this function, 
 	// just give up in this case for now...
 	
-	if(argc==format.size())
+	if(argc==(int)format.size())
 	{
-		for (int n=0; n<format.size(); n++)
+		for (unsigned int n=0; n<format.size(); n++)
 		{
 			switch(format[n])
 			{
@@ -115,9 +115,7 @@ void SchemeHelper::ArgCheck(const string &funcname, const string &format, int ar
 					assert(false);
 				break;
 			};
-
 		}
 	}
-
 }
 
