@@ -82,6 +82,10 @@ EngineCallback(NULL)
 	InitFeedback();
 	
 	m_Camera.translate(0,0,-10);
+
+	// stop valgrind complaining
+	m_LastTime.tv_sec=0;
+	m_LastTime.tv_usec=0;
 }
 
 Renderer::~Renderer()
@@ -283,6 +287,10 @@ void Renderer::EndScene()
 	if (m_LoadedFromFlx) ClearIMPrimitives();
 	
 	timeval ThisTime;
+	// stop valgrind complaining
+	ThisTime.tv_sec=0;
+	ThisTime.tv_usec=0;
+	
 	gettimeofday(&ThisTime,NULL);
 	m_Delta=(ThisTime.tv_sec-m_LastTime.tv_sec)+
 			(ThisTime.tv_usec-m_LastTime.tv_usec)*0.000001f;

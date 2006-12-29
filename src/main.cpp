@@ -36,13 +36,12 @@ static const string ENGINE_CALLBACK="(fluxus-frame-callback)";
 static const string RESHAPE_CALLBACK="fluxus-reshape-callback";
 static const string INPUT_CALLBACK="fluxus-input-callback";
 static const string INPUT_RELEASE_CALLBACK="fluxus-input-release-callback";
-// todo: get rid of this path!!!
-static const string STARTUP_SCRIPT="/home/dave/code/fluxus-plt/fluxus/fluxus-startup.scm";
+static const string STARTUP_SCRIPT="(load (string-append (path->string (find-system-path 'home-dir)) \".fluxus/startup.scm\"))";
 
 FluxusMain *app = NULL;
-Scheme_Env *scheme = scheme_basic_env();
+Scheme_Env *scheme; 
 
-void RunScheme(const string &str)
+void RunScheme(const string &str, bool abort=false)
 {	
   	Scheme_Object *curout=NULL;
  	mz_jmp_buf * volatile save, fresh;
@@ -53,7 +52,7 @@ void RunScheme(const string &str)
     if (scheme_setjmp(scheme_error_buf)) 
 	{
 		scheme_current_thread->error_buf = save;
-		//cerr<<"errroorrorororr"<<endl;
+		if (abort) exit(-1);
     } 
 	else 
 	{
@@ -142,7 +141,13 @@ void IdleCallback()
 
 int main(int argc, char *argv[])
 {
-   // InitDada();
+	void *stack_start;
+	stack_start = (void *)&stack_start;
+	scheme_set_stack_base(stack_start, 1);  
+  
+	scheme = scheme_basic_env();
+	RunScheme(STARTUP_SCRIPT,true);
+	
 	srand(time(NULL));
 		
 	glutInitWindowSize(720,576);
@@ -159,38 +164,18 @@ int main(int argc, char *argv[])
 	glutIdleFunc(IdleCallback);
 	glutKeyboardUpFunc(KeyboardUpCallback);
 	glutSpecialUpFunc(SpecialKeyboardUpCallback);
-
-
-	FILE *file = fopen(STARTUP_SCRIPT.c_str(),"r");
-	if (file)
-	{
-		fseek(file,0,SEEK_END);
-		unsigned int size = ftell(file);
-		fseek(file,0,SEEK_SET);
-		char *code = new char[size+1];
-		fread(code,1,size,file);
-		fclose(file);
-		code[size]='\0';
-		RunScheme(code);
-		delete[] code;
-   
-   		if (argc>1) app->LoadScript(argv[1]);
+	   
+   	if (argc>1) app->LoadScript(argv[1]);
 		
-		if(glewInit() != GLEW_OK)
-		{
-			cerr << "ERROR Unable to check OpenGL extensions" << endl;
-			return false;
-		}
-
-		//GLSLShader::Init();
-	
-		glutMainLoop();
-	
-	}
-	else
+	if(glewInit() != GLEW_OK)
 	{
-		cerr<<"fluxus cannot find "<<STARTUP_SCRIPT<<", quitting..."<<endl;
+		cerr << "ERROR Unable to check OpenGL extensions" << endl;
+		return false;
 	}
+
+	//GLSLShader::Init();
+	
+	glutMainLoop();
 	
 	return 0;
 }

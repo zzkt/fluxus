@@ -30,27 +30,12 @@ using namespace fluxus;
 ////////////////////////////////////////////////////////////////
 
 FluxusMain::FluxusMain(int x, int y) :
-m_CameraMode(SCENE),
 m_CurrentEditor(0),
-m_Init(true),
-m_LastMouseX(0),
-m_LastMouseY(0),
-m_LastButton(0),
-m_CurButton(0),
-m_RotX(0),
-m_RotY(0),
-m_PosX(0),
-m_PosY(0),
-m_DisY(-10),
-m_MouseClickX(0),
-m_MouseClickY(0),
-m_ShowLocators(false),
 m_Frame(-1),
 m_Width(x),
 m_Height(y),
 m_HideScript(false),
-m_ShowCursor(true),	
-m_InteractiveCamera(true)
+m_ShowCursor(true)
 {
 	for(int i=0; i<10; i++) 
 	{
@@ -59,46 +44,16 @@ m_InteractiveCamera(true)
 	//m_Editor[9] = new Repl();
 }
 
-void FluxusMain::ResetCamera()
+FluxusMain::~FluxusMain() 
 {
-	m_RotX=m_RotY=m_PosX=m_PosY=0;
-	m_DisY=-10;	
-	m_MouseClickX=m_MouseClickY=0;
-	m_RotStart=dQuat();
-	m_RotNow=dQuat();
-	m_InteractiveCamera=true;
-}
-
-void FluxusMain::Handle(unsigned char key, int button, int special, int state, int x, int y, int mod) 
-{
-	// insert recorder stuff here...
-	
-	HandleImpl(key, button, special, state, x, y, mod);
-}
-
-// this function is used in arcball implementation
-static void onUnitSphere(const float mx, const float my,
-			 float& x, float& y, float& z)
-{
-	x = mx;		// should divide radius
-	y = my;
-	float mag = x*x + y*y;
-	if (mag > 1.0f) {
-		float scale = 1.0f / ((float) sqrt(mag));
-		x *= scale;
-		y *= scale;
-	z = 0;
-		} else {
-		z = (float) sqrt(1 - mag);
+	for(int i=0; i<10; i++)
+	{
+		delete m_Editor[i];
 	}
 }
 
-void FluxusMain::HandleImpl(unsigned char key, int button, int special, int state, int x, int y, int mod) 
-{
-	//cerr<<"key:"<<key<<" button:"<<button<<" special:"<<special<<" state:"<<state<<" x:"<<x<<" y:"<<y<<endl;
-	m_CurMouseX=x;
-	m_CurMouseY=y;
-	
+void FluxusMain::Handle(unsigned char key, int button, int special, int state, int x, int y, int mod) 
+{	
 	if (mod&GLUT_ACTIVE_CTRL)
 	{
 		// pretty sure this is going to have to change...
@@ -142,11 +97,7 @@ void FluxusMain::HandleImpl(unsigned char key, int button, int special, int stat
 	
 	if (key!=0 || special!=-1) 
 	{
-		if (special==GLUT_KEY_F1) m_CameraMode=SCENE;
-		else if (special==GLUT_KEY_F2) m_CameraMode=EDITOR;
-		else if (special==GLUT_KEY_F3) ResetCamera();
-		else if (special==GLUT_KEY_F4) m_Editor[m_CurrentEditor]->Reset();
-		else if (special==GLUT_KEY_F9) 
+		if (special==GLUT_KEY_F9) 
 		{
 			m_Editor[m_CurrentEditor]->m_TextColourRed=rand()%1000/1000.0f;
 			m_Editor[m_CurrentEditor]->m_TextColourBlue=rand()%1000/1000.0f;
@@ -159,114 +110,6 @@ void FluxusMain::HandleImpl(unsigned char key, int button, int special, int stat
 		// the editor only takes keyboard events
 		if (!m_HideScript) m_Editor[m_CurrentEditor]->Handle(button,key,special,state,x,y,mod);
 	}
-	else
-	{
-		if (state==0) m_CurButton=button+1; // button on
-		else if (state==1) m_CurButton=0; // button off			
-	
-		if (m_CameraMode==SCENE)
-		{
-			// mouse event then?
-			if (state==0) 
-			{
-				m_LastButton=button;
-				m_LastMouseX=x;
-				m_LastMouseY=y;
-				// arcball
-				m_RotStart = m_RotNow * m_RotStart;
-				m_RotNow = dQuat(); // identity
-				// unlike m_LastMouseX/Y the following aren't updated during drag
-				m_MouseClickX = (((float)x / (((float)m_Width  - 1.0) / 2.0)) - 1.0);
-				m_MouseClickY = -(((float)y / (((float)m_Height  - 1.0) / 2.0)) - 1.0);
-			}
-			else
-			{
-				switch (m_LastButton)
-				{
-					case 0:
-					{
-						/* arcball rotation */
-						float dx,dy,dz;
-						float mx,my,mz;
-						onUnitSphere(m_MouseClickX, m_MouseClickY, dx, dy, dz);
-						onUnitSphere((((float)x / (((float)m_Width  - 1.0) / 2.0)) - 1.0), 
-							     -(((float)y / (((float)m_Height  - 1.0) / 2.0)) - 1.0), 
-							     mx, my, mz);
-						
-						m_RotNow.x = dy*mz - dz*my;
-						m_RotNow.y = dz*mx - dx*mz;
-						m_RotNow.z = dx*my - dy*mx;
-						m_RotNow.w = dx*mx + dy*my + dz*mz;
-						
-						m_RotNow.renorm();
-					}
-					break;
-					case 1:
-					{
-						m_PosX+=(x-m_LastMouseX)/50.0f;
-						m_PosY+=-(y-m_LastMouseY)/50.0f;
-					}
-					break;
-					case 2:
-					{
-						m_DisY+=-(y-m_LastMouseY)/50.0f;
-					}
-					break;
-				}
-				m_LastMouseX=x;
-				m_LastMouseY=y;
-			}		
-		}		
-		else if (m_CameraMode==EDITOR)
-		{
-			// mouse event then?
-			if (state==0) 
-			{
-				m_LastButton=button;
-				m_LastMouseX=x;
-				m_LastMouseY=y;
-			}
-			else
-			{
-				switch (m_LastButton)
-				{
-					case 0:
-					{
-						m_Editor[m_CurrentEditor]->m_RotY+=(x-m_LastMouseX)/2.0f;
-						m_Editor[m_CurrentEditor]->m_RotX+=-(y-m_LastMouseY)/2.0f;
-					}
-					break;
-					case 1:
-					{
-						m_Editor[m_CurrentEditor]->m_PosX+=(x-m_LastMouseX)*2;
-						m_Editor[m_CurrentEditor]->m_PosY+=-(y-m_LastMouseY)*2;
-					}
-					break;
-					case 2:
-					{
-						m_Editor[m_CurrentEditor]->m_DisY+=-(y-m_LastMouseY)*4;
-					}
-					break;
-				}
-				m_LastMouseX=x;
-				m_LastMouseY=y;
-			}		
-		}
-	}
-	
-	if (m_InteractiveCamera)
-	{
-		//m_Renderer.GetCamera()->init();
-		//m_Renderer.GetCamera()->translate(m_PosX,m_PosY,m_DisY);
-		//(*m_Renderer.GetCamera()) *= (m_RotNow * m_RotStart).conjugate().toMatrix();
-		//m_Renderer.SetOrthoZoom(m_DisY);
-	}
-}
-
-bool FluxusMain::KeyPressed(char b)
-{
-	//return Fl::event_key(b);
-	return false;
 }
 
 void FluxusMain::StartDumpFrames(const string &Filename, const string &Type)
@@ -291,12 +134,10 @@ void FluxusMain::Reshape(int width, int height)
 	//m_Renderer.SetResolution(width,height);
 	m_Width=width;
 	m_Height=height;
-	m_Init=true;
 }
 
 void FluxusMain::Render()
 {		
-	gettimeofday(&m_Time,NULL);
 	if (!m_HideScript) m_Editor[m_CurrentEditor]->Render();
 	
 	if (m_Frame!=-1)
@@ -393,7 +234,7 @@ void FluxusMain::SaveScript()
 		fclose(file);
 	}
 	
-	Dump("Saved ["+m_SaveName[m_CurrentEditor]+"]");
+	cerr<<"Saved ["<<m_SaveName[m_CurrentEditor]<<"]"<<endl;
 	
 }
 

@@ -14,12 +14,13 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
          	
-#include "GL/glew.h"
 #ifndef __APPLE__
+#include "GL/glew.h"
 #include "GL/gl.h"
 #include "GL/glu.h"
 #include "GL/glut.h"
 #else
+#include "OpenGL/glew.h" /// ???
 #include "OpenGL/gl.h"
 #include "OpenGL/glu.h"
 #include "GLUT/glut.h"
@@ -51,7 +52,7 @@ namespace fluxus
 
 // todo: use glew for this
 #ifndef DISABLE_MULTITEXTURING
-#define ENABLE_MULTITEXTURE
+//#define ENABLE_MULTITEXTURE
 #endif
 
 #ifdef ENABLE_MULTITEXTURE

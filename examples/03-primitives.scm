@@ -26,7 +26,7 @@
 
 ; poly plane
 (translate (vector 1.5 0 0))
-(build-plane 1 1)
+(build-plane)
 
 ; poly lines
 (translate (vector 1.5 0 0))

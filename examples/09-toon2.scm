@@ -1,3 +1,6 @@
+(desiredfps 100000)
+(show-fps 1)
+;17.3
 ; a smaller example of toonshading that should be fast enough to 
 ; light every frame - also an example of reference geometry
 

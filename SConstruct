@@ -1,4 +1,9 @@
-#                                                              -*- python -*-
+###############################################################
+# Top level SConscript for fluxus
+#
+# Checks all dependancies needed, builds the fluxus canvas 
+# application, then calls the sconscripts for libfluxus and
+# the fluxus PLT modules 
 
 import os, os.path
 
@@ -8,14 +13,6 @@ MinorVersion = "12"
 
 Prefix = "/usr/local"
 Install      = Prefix + "/bin"
-
-GuileVersionMajMin = "1.8"
-GuilePrefix        = "/usr/local"
-GuileDataPrefix    = GuilePrefix + "/share/guile"
-GuileSchemePrefix  = GuileDataPrefix + "/" + GuileVersionMajMin
-
-SchemePrefix = GuileSchemePrefix + "/fluxus"
-
 LibPaths     = Split("/usr/local/lib \
 					  /usr/lib")
 					  
@@ -39,43 +36,9 @@ Source = Split("src/GLEditor.cpp \
 		src/Utils.cpp \
 		src/Recorder.cpp \
 		src/FluxusMain.cpp \
-		src/dada.cpp \
 		src/main.cpp")
 		
 FluxusVersion = "HEAD"
-
-param_cast_test_src = """
-#include <libguile.h>
-
-SCM test () { return NULL; }
-
-int main(int argc, char ** argv) {
-	scm_c_define_gsubr("test", 0,0,0,(SCM (*)())test);
-	return 0;
-}
-"""
-
-def CheckParamCast(context):
-	context.Message('Checking if callbacks should be cast to (SCM (*)())...')
-	result = context.TryCompile(param_cast_test_src, ".cpp")
-	context.Result(result)
-	return result
-
-multitexture_test_src = """
-#include <GL/gl.h>
-
-int main(int argc, char ** argv) {
-	glClientActiveTexture(GL_TEXTURE1);
-	return 0;
-}
-"""
-
-def CheckMultitexture(context):
-	context.Message('Checking for multitexturing support...')
-	result = context.TryCompile(multitexture_test_src, ".cpp")
-	context.Result(result)
-	return result
-
 
 env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC',
 		  LIBPATH = LibPaths,
@@ -94,7 +57,8 @@ else:
            	    ["GL", "GL/gl.h"],
            	    ["GLU", "GL/glu.h"],
                 ["glut", "GL/glut.h"],
-                ["GLEW", "GL/glew.h"]]
+                ["GLEW", "GL/glew.h"],
+				["ode", "ode/ode.h"]]
 	env.Append(LIBPATH = ["/usr/X11R6/lib"])
 	
 	# add the X11 libs on - needed if we are not building on xorg
@@ -110,9 +74,7 @@ if not GetOption('clean'):
 	print '--------------------------------------------------------'		
 	print 'Fluxus: Configuring Build Environment'
 	print '--------------------------------------------------------'		
-	conf = Configure( env, custom_tests = 
-	{'CheckParamCast' : CheckParamCast, 
-	 'CheckMultitexture' : CheckMultitexture })
+	conf = Configure(env)
 	
 	# all libraries are required, but they can be checked for independently
 	# (hence autoadd=0), which allows us to speed up the tests ...
@@ -121,19 +83,9 @@ if not GetOption('clean'):
 			print "ERROR: '%s' must be installed!" % (lib)
 			Exit(1)
 			
-	# check if ellipsis is needed in casts
-	if not conf.CheckParamCast():
-		env.Append(CCFLAGS=' -DNEED_ELLIPSIS_IN_CASTS')
-		
-		
-	if env['PLATFORM'] != 'darwin':
-		# check if multitexturing is supported (todo: use glew for this sort of thing)
-		if not conf.CheckMultitexture():
-			env.Append(CCFLAGS=' -DDISABLE_MULTITEXTURING')
-	
-	# enable users to disable multitexturing manually
-	if ARGUMENTS.get("MULTITEXTURE",1)=="0":
-		env.Append(CCFLAGS=' -DDISABLE_MULTITEXTURING')
+	# enable users to enable multitexturing manually
+	if ARGUMENTS.get("MULTITEXTURE",1)=="1":
+		env.Append(CCFLAGS=' -DENABLE_MULTITEXTURING')
 		
 	env = conf.Finish()
 	# ... but we shouldn't forget to add them to LIBS manually
@@ -152,12 +104,6 @@ if env['PLATFORM'] == 'darwin':
 					"macos/fluxus-Info.plist",
 					typecode='APPL',
 					icon_file='macos/fluxus.icns'))
-	GuileScripts = "Fluxus.app/Contents/Resources/guile_scripts"
-	SchemePrefix = GuileScripts + "/site/fluxus"
-	for where, dirs, files in os.walk(GuileSchemePrefix):
-		dest = os.path.join(GuileScripts, where[len(GuileSchemePrefix)+1:])
-		for f in files:
-			env.Install(dest, os.path.join(where,f))
 	
 	env['BUILDERS']['DiskImage'] = Builder(action = BuildDmg)
 	DmgFiles = [File("COPYING"), Dir("Fluxus.app"), Dir("docs"), Dir("examples"), Dir("scm")]
@@ -167,6 +113,5 @@ else:
 	env.Install(Install, Target)
 	env.Alias('install', Prefix)
 
-env.Install(SchemePrefix,"#/scm/init.scm")
-env.Install(SchemePrefix,"#/scm/macros.scm")
-
+# call the core library builder and the scheme modules
+SConscript(dirs=Split("libfluxus modules"), exports = ["Prefix"])

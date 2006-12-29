@@ -17,7 +17,6 @@
 #include "GLEditor.h"
 #include "Recorder.h"
 //#include "Repl.h"
-#include "dada.h"
 
 using namespace fluxus;
 
@@ -33,10 +32,7 @@ class FluxusMain
 {
 public:
 	FluxusMain(int x, int y);
-	virtual ~FluxusMain() {
-		for(int i=0; i<10; i++)
-			delete m_Editor[i];
-	}
+	virtual ~FluxusMain();
 	
 	void Handle(unsigned char key, int button, int special, int state, int x, int y, int mod);
 	void Render();
@@ -45,8 +41,6 @@ public:
 	bool KeyPressed(char b);
 	
     string GetScriptFragment() { string temp=m_Script; m_Script=""; return temp; }
-    void Dump(const string &Text) { cerr<<Text<<endl; }
-    void ResetCamera();
     void LoadScript(const string &Filename);
     void SetSaveName(const string &s) { m_SaveName[m_CurrentEditor]=s; }
     void SaveScript();
@@ -54,18 +48,9 @@ public:
 	void EndDumpFrames();
 	void HideScript() { m_HideScript=!m_HideScript; }
 	void HideCursor() { m_ShowCursor=!m_ShowCursor; }
-	void ShowLocators(bool s) { m_ShowLocators=s; }
-	void SetCurrentEditor(int s) { m_CurrentEditor=s; }
-	void SetInteractiveCamera(bool s) { m_InteractiveCamera=s; }
-	
-	int GetMouseX() { return m_CurMouseX; }
-	int GetMouseY() { return m_CurMouseY; }
-	int GetMouseButton() { return m_CurButton; }
- 
+	void SetCurrentEditor(int s) { m_CurrentEditor=s; } 
     void LoadRecordedCode(const string &Filename) { m_Recorder.Load(Filename); }
     void SaveRecordedCode(const string &Filename) { m_Recorder.Save(Filename); }
-
-	timeval GetTime() { return m_Time; }
 	
 	//Repl * GetRepl() { return (Repl*)m_Editor[9]; }
     //void SwitchToRepl() { m_CurrentEditor = 9; }
@@ -74,31 +59,11 @@ protected:
 	EventRecorder m_Recorder;
 	
 private:
-	void HandleImpl(unsigned char key, int button, int special, int state, int x, int y, int mod);
-	
-	enum CameraMode{SCENE,EDITOR};
-	CameraMode m_CameraMode;
 	
 	GLEditor * m_Editor[NUM_EDITORS];
 	int m_CurrentEditor;
 	string m_SaveName[NUM_EDITORS];
-
-	bool m_Init;
-	int m_CurMouseX;
-	int m_CurMouseY;
-	int m_LastMouseX;
-	int m_LastMouseY;
-	int m_LastButton;
-	int m_CurButton;
-	float m_RotX,m_RotY,m_PosX,m_PosY,m_DisY;	
-
-	// arcball
-	float m_MouseClickX, m_MouseClickY;
-	dQuat m_RotStart, m_RotNow;
 		
-	bool m_ShowLocators;
-	dVector m_Pos;
-	dVector m_Dir;
 	int m_Frame;
 	string m_FrameName;
 	string m_FrameType;
@@ -107,8 +72,6 @@ private:
 	string m_Script;
 	bool m_HideScript;
 	bool m_ShowCursor;
-	bool m_InteractiveCamera;
-	timeval m_Time;
 };
 
 };
