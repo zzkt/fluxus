@@ -3,7 +3,8 @@
 			   
 (module fluxus-canvas mzscheme
 	(require fluxus-engine)
-	(require (lib "fluxus-camera.ss" "fluxus"))
+	(require fluxus-audio)
+	(require (lib "fluxus-camera.ss" "fluxus-0.12"))
 	(provide 
 		fluxus-reshape-callback 
 		fluxus-input-callback 
@@ -63,6 +64,7 @@
   (if (not (null? user-callback))
       (user-callback))
   (end-scene)
-  (tick-physics))
+  (tick-physics)
+  (update-audio))
 
 )

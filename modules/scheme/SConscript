@@ -4,7 +4,8 @@
 # Should be ok for cross platform
 
 import os
-Import("Prefix", "CollectsLocation", "BinaryModulesLocation")
+	 
+Import("Prefix", "FluxusVersion", "CollectsLocation", "BinaryModulesLocation")
 
 Scripts    = ["fluxus-canvas.ss", 
 			  "fluxus-obj-import.ss", 

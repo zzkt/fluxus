@@ -8,7 +8,7 @@ import os, os.path
 
 Target       = "fluxus-engine.so"
 
-Import("Prefix", "CollectsLocation", "BinaryModulesLocation")
+Import("Prefix", "FluxusVersion", "CollectsLocation", "BinaryModulesLocation")
 
 Install      = BinaryModulesLocation
 LibPaths     = Split("../../libfluxus/ /usr/local/lib /usr/local/lib/plt /usr/lib")

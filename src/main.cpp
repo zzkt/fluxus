@@ -154,7 +154,9 @@ int main(int argc, char *argv[])
 	app = new FluxusMain(720,576);
   	glutInit(&argc,argv);
 	glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH|GLUT_STENCIL);
-  	glutCreateWindow("fluxus");
+	char windowtitle[256];
+	snprintf(windowtitle,256,"fluxus %d.%d",FLUXUS_MAJOR_VERSION,FLUXUS_MINOR_VERSION);
+  	glutCreateWindow(windowtitle);
 	glutDisplayFunc(DisplayCallback);
 	glutReshapeFunc(ReshapeCallback);
 	glutKeyboardFunc(KeyboardCallback);

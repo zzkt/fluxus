@@ -14,11 +14,13 @@ import sys
 # multi architecture install)
 Arch = "/i386-linux"
 
-Import("Prefix")
-CollectsLocation = Prefix + "/lib/plt/collects/fluxus"
+Import("Prefix","FluxusVersion")
+CollectsLocation = Prefix + "/lib/plt/collects/fluxus-"+FluxusVersion
 BinaryModulesLocation = CollectsLocation + "/compiled/native" + Arch
 
 SConscript(dirs = ["fluxus-engine",
+				   "fluxus-audio",
+				   "fluxus-osc",
 				   "scheme"], 
-           exports = ["Prefix", "CollectsLocation", "BinaryModulesLocation"])
+           exports = ["Prefix", "FluxusVersion", "CollectsLocation", "BinaryModulesLocation"])
 

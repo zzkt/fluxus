@@ -7,17 +7,15 @@
 
 import os, os.path
 
-Target       = "fluxus-plt"
 MajorVersion = "0"
 MinorVersion = "12"
+FluxusVersion = MajorVersion+"."+MinorVersion
+Target       = "fluxus-"+FluxusVersion
 
 Prefix = "/usr/local"
 Install      = Prefix + "/bin"
-LibPaths     = Split("/usr/local/lib \
-					  /usr/lib")
-					  
-IncludePaths = Split("/usr/local/include \
-					  /usr/include")
+LibPaths     = ["/usr/local/lib", "/usr/lib"]
+IncludePaths = ["/usr/local/include", "/usr/include"]
 
 # First member of each list is a library, second - a header or headers list
 # to be passed to the CheckLibWithHeader(...) at configure time.
@@ -30,16 +28,15 @@ LibList      = [["m", "math.h"],
 		["jpeg", ["stdio.h", "stdlib.h", "jpeglib.h"]],
 		["tiff", "tiff.h"],
 		["z", "zlib.h"],
-		["png", "libpng/png.h"]]
+		["png", "libpng/png.h"],
+		["ode", "ode/ode.h"]]
 
-Source = Split("src/GLEditor.cpp \
-		src/Utils.cpp \
-		src/Recorder.cpp \
-		src/FluxusMain.cpp \
-		src/main.cpp")
+Source = ["src/GLEditor.cpp", 
+		"src/Utils.cpp",
+		"src/Recorder.cpp",
+		"src/FluxusMain.cpp", 
+		"src/main.cpp"]
 		
-FluxusVersion = "HEAD"
-
 env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC',
 		  LIBPATH = LibPaths,
 		  CPPPATH = IncludePaths,
@@ -57,8 +54,7 @@ else:
            	    ["GL", "GL/gl.h"],
            	    ["GLU", "GL/glu.h"],
                 ["glut", "GL/glut.h"],
-                ["GLEW", "GL/glew.h"],
-				["ode", "ode/ode.h"]]
+                ["GLEW", "GL/glew.h"]]
 	env.Append(LIBPATH = ["/usr/X11R6/lib"])
 	
 	# add the X11 libs on - needed if we are not building on xorg
@@ -114,4 +110,4 @@ else:
 	env.Alias('install', Prefix)
 
 # call the core library builder and the scheme modules
-SConscript(dirs=Split("libfluxus modules"), exports = ["Prefix"])
+SConscript(dirs=Split("libfluxus modules"), exports = ["Prefix","FluxusVersion"])
