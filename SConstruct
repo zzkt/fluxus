@@ -32,6 +32,8 @@ LibList      = [["m", "math.h"],
 		["ode", "ode/ode.h"]]
 
 Source = ["src/GLEditor.cpp", 
+		"src/Interpreter.cpp",
+		"src/Repl.cpp",
 		"src/Utils.cpp",
 		"src/Recorder.cpp",
 		"src/FluxusMain.cpp", 
