@@ -1,0 +1,72 @@
+#include <iostream>
+#include "Interpreter.h"
+#include "Repl.h"
+
+using namespace std;
+using namespace fluxus;
+	
+Interpreter::Interpreter(Scheme_Env *e) : 
+m_Scheme(e),
+m_Repl(NULL)
+{
+}
+
+Interpreter::~Interpreter() 
+{
+}
+
+Scheme_Object *Interpreter::Interpret(const string &str, bool abort)
+{	
+	Scheme_Object *ret=NULL;
+	Scheme_Object *outport = scheme_make_byte_string_output_port();
+	Scheme_Object *errport = scheme_make_byte_string_output_port();
+
+	scheme_set_param(scheme_current_config(), MZCONFIG_OUTPUT_PORT, outport);
+	scheme_set_param(scheme_current_config(), MZCONFIG_ERROR_PORT, errport);
+
+  	Scheme_Object *curout=NULL;
+ 	mz_jmp_buf * volatile save, fresh;
+	
+	save = scheme_current_thread->error_buf;
+    scheme_current_thread->error_buf = &fresh;
+	
+    if (scheme_setjmp(scheme_error_buf)) 
+	{
+		scheme_current_thread->error_buf = save;
+		if (abort) exit(-1);
+    } 
+	else 
+	{
+		ret = scheme_eval_string_all(str.c_str(), m_Scheme, 1);
+		scheme_current_thread->error_buf = save;
+    }
+		
+	// todo: support colour escape codes in the editor for
+	// error/output colour formatting...
+	if (outport!=NULL)
+	{
+		long size=0;
+		char *msg;
+		msg=scheme_get_sized_byte_string_output(outport,&size);
+				
+		if (size>0)
+		{
+			if (m_Repl) m_Repl->Print(string(msg));
+			else cerr<<msg<<endl;
+		}
+	}	
+	
+	if (errport!=NULL)
+	{
+		long size=0;
+		char *msg;
+		msg=scheme_get_sized_byte_string_output(errport,&size);
+		if (size>0)
+		{
+			if (m_Repl) m_Repl->Print(string(msg));
+			else cerr<<msg<<endl;
+		}
+	}	
+	
+	return ret;
+}

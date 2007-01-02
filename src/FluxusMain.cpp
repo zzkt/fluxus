@@ -21,7 +21,6 @@
 #include <GLUT/glut.h>
 #endif
 #include "Utils.h"
-//#include "Repl.h"
 #include <iostream>
 
 using namespace std;
@@ -29,7 +28,7 @@ using namespace fluxus;
 
 ////////////////////////////////////////////////////////////////
 
-FluxusMain::FluxusMain(int x, int y) :
+FluxusMain::FluxusMain(Interpreter *interpreter, int x, int y) :
 m_CurrentEditor(0),
 m_Frame(-1),
 m_Width(x),
@@ -37,11 +36,16 @@ m_Height(y),
 m_HideScript(false),
 m_ShowCursor(true)
 {
-	for(int i=0; i<10; i++) 
+	for(int i=0; i<9; i++) 
 	{
 		m_Editor[i] = new GLEditor();
 	}
-	//m_Editor[9] = new Repl();
+	Repl *repl = new Repl(interpreter);
+	m_Editor[9] = repl;
+	
+	// register the repl with the interpreter so we can
+	// use it to output error and output messages
+	interpreter->SetRepl(repl);
 }
 
 FluxusMain::~FluxusMain() 

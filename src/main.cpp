@@ -28,6 +28,7 @@
 #include <GL/glut.h>
 #include <plt/scheme.h>
 #include "FluxusMain.h"
+#include "Interpreter.h"
 
 using namespace std;
 
@@ -39,28 +40,7 @@ static const string INPUT_RELEASE_CALLBACK="fluxus-input-release-callback";
 static const string STARTUP_SCRIPT="(load (string-append (path->string (find-system-path 'home-dir)) \".fluxus/startup.scm\"))";
 
 FluxusMain *app = NULL;
-Scheme_Env *scheme; 
-
-void RunScheme(const string &str, bool abort=false)
-{	
-  	Scheme_Object *curout=NULL;
- 	mz_jmp_buf * volatile save, fresh;
-	
-	save = scheme_current_thread->error_buf;
-    scheme_current_thread->error_buf = &fresh;
-	
-    if (scheme_setjmp(scheme_error_buf)) 
-	{
-		scheme_current_thread->error_buf = save;
-		if (abort) exit(-1);
-    } 
-	else 
-	{
-		Scheme_Object *v = scheme_eval_string_all(str.c_str(), scheme, 1);
-		scheme_current_thread->error_buf = save;
-    }
-}
-
+Interpreter *interpreter = NULL; 
 
 void DisplayCallback()
 {    
@@ -69,10 +49,10 @@ void DisplayCallback()
 	string fragment = app->GetScriptFragment();
     if (fragment!="")
     {
-		RunScheme(fragment);
+		interpreter->Interpret(fragment);
     }
 	
-	RunScheme(ENGINE_CALLBACK);
+	interpreter->Interpret(ENGINE_CALLBACK);
 		
 	app->Render();	
 	glutSwapBuffers();
@@ -83,7 +63,7 @@ void ReshapeCallback(int width, int height)
 	app->Reshape(width,height);
 	char code[256];
 	snprintf(code,256,"(%s %d %d)",RESHAPE_CALLBACK.c_str(),width,height);
-	RunScheme(code);
+	interpreter->Interpret(code);
 }
 
 void KeyboardCallback(unsigned char key,int x, int y)
@@ -92,14 +72,14 @@ void KeyboardCallback(unsigned char key,int x, int y)
 
 	char code[256];
 	snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),key,-1,-1,-1,x,y,glutGetModifiers());
-	RunScheme(code);
+	interpreter->Interpret(code);
 }
 
 void KeyboardUpCallback(unsigned char key,int x, int y)
 {
 	char code[256];
 	snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_RELEASE_CALLBACK.c_str(),key,-1,-1,-1,x,y,0);
-	RunScheme(code);
+	interpreter->Interpret(code);
 }
 
 void SpecialKeyboardCallback(int key,int x, int y)
@@ -107,7 +87,7 @@ void SpecialKeyboardCallback(int key,int x, int y)
 	app->Handle(0, -1, key, -1, x, y, glutGetModifiers());
 	char code[256];
 	snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),0,-1,key,-1,x,y,glutGetModifiers());
-	RunScheme(code);
+	interpreter->Interpret(code);
 }
 
 void SpecialKeyboardUpCallback(int key,int x, int y)
@@ -115,7 +95,7 @@ void SpecialKeyboardUpCallback(int key,int x, int y)
 	//app->Handle( 0, 0, key, 1, x, y);
 	char code[256];
 	snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_RELEASE_CALLBACK.c_str(),0,-1,key,-1,x,y,glutGetModifiers());
-	RunScheme(code);
+	interpreter->Interpret(code);
 }
 
 void MouseCallback(int button, int state, int x, int y)
@@ -123,7 +103,7 @@ void MouseCallback(int button, int state, int x, int y)
 	app->Handle(0, button, -1, state, x, y, 0);
 	char code[256];
 	snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),0,button,-1,state,x,y,0);
-	RunScheme(code);
+	interpreter->Interpret(code);
 }
 
 void MotionCallback(int x, int y)
@@ -131,7 +111,7 @@ void MotionCallback(int x, int y)
 	app->Handle(0, -1, -1, -1, x, y, 0);
 	char code[256];
 	snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),0,-1,-1,-1,x,y,0);
-	RunScheme(code);
+	interpreter->Interpret(code);
 }
 
 void IdleCallback()
@@ -145,13 +125,13 @@ int main(int argc, char *argv[])
 	stack_start = (void *)&stack_start;
 	scheme_set_stack_base(stack_start, 1);  
   
-	scheme = scheme_basic_env();
-	RunScheme(STARTUP_SCRIPT,true);
+	interpreter = new Interpreter(scheme_basic_env());
+	interpreter->Interpret(STARTUP_SCRIPT,true);
 	
 	srand(time(NULL));
 		
 	glutInitWindowSize(720,576);
-	app = new FluxusMain(720,576);
+	app = new FluxusMain(interpreter,720,576);
   	glutInit(&argc,argv);
 	glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH|GLUT_STENCIL);
 	char windowtitle[256];

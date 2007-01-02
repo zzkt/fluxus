@@ -14,50 +14,32 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef _FLUXUS_REPL_H_
-#define _FLUXUS_REPL_H_
+#ifndef _FLUXUS_INTERPRETER_H_
+#define _FLUXUS_INTERPRETER_H_
 
 #include <deque>
+#include <string>
 #include <plt/scheme.h>
-#include "GLEditor.h"
-#include "Interpreter.h"
 
 namespace fluxus 
 {
 
-class Repl : public GLEditor
+class Repl;
+
+class Interpreter 
 {
 public:
-	Repl(Interpreter *i);
-	virtual ~Repl() {}
+	Interpreter(Scheme_Env *e);
+	~Interpreter();
 	
-	virtual void Handle(int button, int key, int special, int state, 
-			    int x, int y, int mod);
+	void SetRepl(Repl *s) { m_Repl=s; }
 	
-	void Print(string what);
-	void Print(Scheme_Object *obj);
+	Scheme_Object *Interpret(const std::string &code, bool abort=false);
+	
+private:
+	Scheme_Env *m_Scheme;
+	Repl *m_Repl;
 
-protected:
-	static string m_Prompt;
-	static string m_Banner;
-	
-	unsigned int m_PromptPos;
-	unsigned int m_InsertPos;
-
-	bool TryEval();
-	void PrintPrompt();
-	void HistoryPrev();
-	void HistoryNext();
-	void HistoryShow(string what);
-	void EnsureCursorVisible();
-
-	// line history
-	deque<string> 			m_History;
-	deque<string>::iterator m_HistoryIter;
-	bool 					m_HistoryNavStarted;
-	string 					m_HistoryPresent;
-	
-	Interpreter*			m_Interpreter;
 };
 
 }

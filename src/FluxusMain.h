@@ -16,7 +16,8 @@
 
 #include "GLEditor.h"
 #include "Recorder.h"
-//#include "Repl.h"
+#include "Repl.h"
+#include "Interpreter.h"
 
 using namespace fluxus;
 
@@ -31,7 +32,7 @@ static const int NUM_EDITORS=10;
 class FluxusMain 
 {
 public:
-	FluxusMain(int x, int y);
+	FluxusMain(Interpreter *i, int x, int y);
 	virtual ~FluxusMain();
 	
 	void Handle(unsigned char key, int button, int special, int state, int x, int y, int mod);
@@ -52,8 +53,8 @@ public:
     void LoadRecordedCode(const string &Filename) { m_Recorder.Load(Filename); }
     void SaveRecordedCode(const string &Filename) { m_Recorder.Save(Filename); }
 	
-	//Repl * GetRepl() { return (Repl*)m_Editor[9]; }
-    //void SwitchToRepl() { m_CurrentEditor = 9; }
+	Repl * GetRepl() { return (Repl*)m_Editor[9]; }
+    void SwitchToRepl() { m_CurrentEditor = 9; }
 
 protected:
 	EventRecorder m_Recorder;
