@@ -4,6 +4,7 @@
 # Sets up common stuff, and calls each module SConscript 
 
 import sys
+Import("InstallEnv","Prefix","FluxusVersion")
 
 # we cant (or I can find out how to) link against external .o files with 
 # vanilla scons, so I have to rename it to make it a static library
@@ -14,7 +15,6 @@ import sys
 # multi architecture install)
 Arch = "/i386-linux"
 
-Import("Prefix","FluxusVersion")
 CollectsLocation = Prefix + "/lib/plt/collects/fluxus-"+FluxusVersion
 BinaryModulesLocation = CollectsLocation + "/compiled/native" + Arch
 
@@ -22,5 +22,5 @@ SConscript(dirs = ["fluxus-engine",
 				   "fluxus-audio",
 				   "fluxus-osc",
 				   "scheme"], 
-           exports = ["Prefix", "FluxusVersion", "CollectsLocation", "BinaryModulesLocation"])
+           exports = ["InstallEnv", "FluxusVersion", "CollectsLocation", "BinaryModulesLocation"])
 

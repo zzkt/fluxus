@@ -1,4 +1,4 @@
-// Copyright (C) 2005 Dave Griffiths
+// Copyright (C) 2007 Dave Griffiths
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by

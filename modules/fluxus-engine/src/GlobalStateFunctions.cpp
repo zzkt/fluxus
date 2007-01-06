@@ -1,14 +1,30 @@
+// Copyright (C) 2007 Dave Griffiths
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
 #include <assert.h>
 #include <plt/escheme.h>
 #include "SchemeHelper.h"
 #include "Engine.h"
 #include "GlobalStateFunctions.h"
 #include "Renderer.h"
-
+ 
 using namespace GlobalStateFunctions;
 using namespace SchemeHelper;
 
-Scheme_Object *clear(int argc, Scheme_Object **argv)
+Scheme_Object *clear_engine(int argc, Scheme_Object **argv)
 {
 	Engine::Get()->Renderer()->Clear();
 	Engine::Get()->Physics()->Clear();
@@ -122,6 +138,13 @@ Scheme_Object *persp(int argc, Scheme_Object **argv)
     return scheme_void;
 }
 
+Scheme_Object *set_ortho_zoom(int argc, Scheme_Object **argv)
+{
+	ArgCheck("set-ortho-zoom", "f", argc, argv);
+	Engine::Get()->Renderer()->SetOrthoZoom(FloatFromScheme(argv[0]));
+    return scheme_void;
+}
+
 Scheme_Object *backfacecull(int argc, Scheme_Object **argv)
 {
 	ArgCheck("backfacecull", "i", argc, argv);
@@ -143,22 +166,17 @@ Scheme_Object *clear_frame(int argc, Scheme_Object **argv)
     return scheme_void;
 }
 
-Scheme_Object *get_transform(int argc, Scheme_Object **argv)
-{
-	return FloatsToScheme(Engine::Get()->State()->Transform.arr(),16);
-}
-
 Scheme_Object *get_camera_transform(int argc, Scheme_Object **argv)
 {
 	return FloatsToScheme(Engine::Get()->Renderer()->GetCamera()->inverse().arr(),16);
 }
 
-Scheme_Object *set_camera_transform(int argc, Scheme_Object **argv)
+Scheme_Object *set_camera(int argc, Scheme_Object **argv)
 {
-	ArgCheck("set-camera-transform", "m", argc, argv);
+	ArgCheck("set-camera", "m", argc, argv);
 	dMatrix m;
 	FloatsFromScheme(argv[0],m.arr(),16);
-	(*Engine::Get()->Renderer()->GetCamera())=m.inverse();
+	(*Engine::Get()->Renderer()->GetCamera())=m;
 	return scheme_void;
 }
 
@@ -187,6 +205,13 @@ Scheme_Object *set_screen_size(int argc, Scheme_Object **argv)
 	return scheme_void;
 }
 
+Scheme_Object *select(int argc, Scheme_Object **argv)
+{
+	ArgCheck("select", "iii", argc, argv);
+	return scheme_make_integer_value(Engine::Get()->Renderer()->Select(IntFromScheme(argv[0]), 
+																	   IntFromScheme(argv[1]),
+																	   IntFromScheme(argv[2])));
+}
 
 Scheme_Object *desiredfps(int argc, Scheme_Object **argv)
 {
@@ -197,7 +222,7 @@ Scheme_Object *desiredfps(int argc, Scheme_Object **argv)
 
 void GlobalStateFunctions::AddGlobals(Scheme_Env *env)
 {	
-	scheme_add_global("clear", scheme_make_prim_w_arity(clear, "clear", 0, 0), env);
+	scheme_add_global("clear-engine", scheme_make_prim_w_arity(clear_engine, "clear-engine", 0, 0), env);
 	scheme_add_global("blur", scheme_make_prim_w_arity(blur, "blur", 1, 1), env);
 	scheme_add_global("fog", scheme_make_prim_w_arity(fog, "fog", 4, 4), env);
 	scheme_add_global("feedback", scheme_make_prim_w_arity(feedback, "feedback", 1, 1), env);
@@ -212,14 +237,15 @@ void GlobalStateFunctions::AddGlobals(Scheme_Env *env)
 	scheme_add_global("clip", scheme_make_prim_w_arity(clip, "clip", 2, 2), env);
 	scheme_add_global("ortho", scheme_make_prim_w_arity(ortho, "ortho", 0, 0), env);
 	scheme_add_global("persp", scheme_make_prim_w_arity(persp, "persp", 0, 0), env);
+	scheme_add_global("set-ortho-zoom", scheme_make_prim_w_arity(set_ortho_zoom, "set-ortho-zoom", 1, 1), env);
 	scheme_add_global("backfacecull", scheme_make_prim_w_arity(backfacecull, "backfacecull", 1, 1), env);
 	scheme_add_global("clear-colour", scheme_make_prim_w_arity(clear_colour, "clear-colour", 1, 1), env);
 	scheme_add_global("clear-frame", scheme_make_prim_w_arity(clear_frame, "clear-frame", 1, 1), env);
-	scheme_add_global("get-transform", scheme_make_prim_w_arity(get_transform, "get-transform", 0, 0), env);
-	scheme_add_global("get-camera-transform", scheme_make_prim_w_arity(get_camera_transform, "get-camera-transform", 0, 0), env);
-	scheme_add_global("set-camera-transform", scheme_make_prim_w_arity(set_camera_transform, "set-camera-transform", 1, 1), env);
+	//scheme_add_global("get-camera-transform", scheme_make_prim_w_arity(get_camera_transform, "get-camera-transform", 0, 0), env);
+	scheme_add_global("set-camera", scheme_make_prim_w_arity(set_camera, "set-camera", 1, 1), env);
 	scheme_add_global("get-projection-transform", scheme_make_prim_w_arity(get_projection_transform, "get-projection-transform", 0, 0), env);
 	scheme_add_global("get-screen-size", scheme_make_prim_w_arity(get_screen_size, "get-screen-size", 0, 0), env);
 	scheme_add_global("set-screen-size", scheme_make_prim_w_arity(set_screen_size, "set-screen-size", 1, 1), env);
+	scheme_add_global("select", scheme_make_prim_w_arity(select, "select", 3, 3), env);
 	scheme_add_global("desiredfps", scheme_make_prim_w_arity(desiredfps, "desiredfps", 1, 1), env);
 }

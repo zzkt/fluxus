@@ -1,3 +1,19 @@
+// Copyright (C) 2007 Dave Griffiths
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
 #include <assert.h>
 #include <plt/escheme.h>
 #include "SchemeHelper.h"
@@ -351,6 +367,26 @@ Scheme_Object *scale(int argc, Scheme_Object **argv)
 }
 
 // StartFunctionDoc
+// get-transform
+// Description:
+// Returns a matrix representing the current state transform or for the 
+// grabbed primitive.
+// Example:
+// (translate (vector 1 0 0))
+// (display (get-transform))(newline) ; prints the current transform
+// (define shape (build-sphere 10 10))
+// (grab shape)
+// (translate (vector 0 1 0))
+// (display (get-transform))(newline) ; prints shape's transform
+// (ungrab)
+// EndFunctionDoc
+
+Scheme_Object *get_transform(int argc, Scheme_Object **argv)
+{
+	return FloatsToScheme(Engine::Get()->State()->Transform.arr(),16);
+}
+
+// StartFunctionDoc
 // parent primitive-id
 // Description:
 // Parents the currently grabbed primitive to the supplied parent primitive. The current
@@ -670,8 +706,8 @@ Scheme_Object *shader(int argc, Scheme_Object **argv)
 {
   	ArgCheck("shader", "ss", argc, argv);
 	
-	char *vert=SCHEME_BYTE_STR_VAL(argv[0]);
-	char *frag=SCHEME_BYTE_STR_VAL(argv[1]);
+	char *vert=StringFromScheme(argv[0]);
+	char *frag=StringFromScheme(argv[1]);
 	
  	GLSLShader *shader = new GLSLShader(vert,frag);
 	
@@ -683,15 +719,12 @@ Scheme_Object *shader(int argc, Scheme_Object **argv)
 		
 	Engine::Get()->State()->Shader=shader;
 	
-	free(vert);
-	free(frag);
-
 	return scheme_void;
 }
 
 Scheme_Object *shader_set(int argc, Scheme_Object **argv)
 {	
-   	ArgCheck("shader-set", "l", argc, argv);
+   	ArgCheck("shader-set!", "l", argc, argv);
 	GLSLShader *shader=Engine::Get()->State()->Shader;
 
 	if (shader)
@@ -768,6 +801,7 @@ void LocalStateFunctions::AddGlobals(Scheme_Env *env)
     scheme_add_global("translate",scheme_make_prim_w_arity(translate,"translate",1,1), env);
     scheme_add_global("rotate",scheme_make_prim_w_arity(rotate,"rotate",1,1), env);
     scheme_add_global("scale",scheme_make_prim_w_arity(scale,"scale",1,1), env);
+	scheme_add_global("get-transform", scheme_make_prim_w_arity(get_transform, "get-transform", 0, 0), env);
     scheme_add_global("colour",scheme_make_prim_w_arity(colour,"colour",1,1), env);
     scheme_add_global("wire-colour",scheme_make_prim_w_arity(wire_colour,"wire-colour",1,1), env);
     scheme_add_global("opacity",scheme_make_prim_w_arity(opacity,"opacity",1,1), env);
@@ -797,5 +831,5 @@ void LocalStateFunctions::AddGlobals(Scheme_Env *env)
 	scheme_add_global("hide",scheme_make_prim_w_arity(hide,"hide",1,1), env);
 	scheme_add_global("selectable",scheme_make_prim_w_arity(selectable,"selectable",1,1), env);
 	scheme_add_global("shader",scheme_make_prim_w_arity(shader,"shader",2,2), env);
-	scheme_add_global("shader-set",scheme_make_prim_w_arity(shader_set,"shader-set",1,1), env);
+	scheme_add_global("shader-set!",scheme_make_prim_w_arity(shader_set,"shader-set!",1,1), env);
 }

@@ -40,6 +40,7 @@ static const int MAXLIGHTS = 8;
 
 Renderer::Renderer() :
 m_Initialised(false),
+m_InitLights(false),
 m_Width(640),
 m_Height(480),
 m_MotionBlur(false),
@@ -66,7 +67,6 @@ m_FogEnd(100),
 m_FeedBack(false),
 m_FeedBackData(NULL),
 m_FeedBackID(0),
-m_LoadedFromFlx(false),
 m_Deadline(1/25.0f),
 m_FPSDisplay(false),
 m_Time(0),
@@ -76,8 +76,6 @@ EngineCallback(NULL)
 	State InitialState;
 	m_StateStack.push_back(InitialState);
 	
-	// builds the default camera light
-	ClearLights();
 
 	InitFeedback();
 	
@@ -162,6 +160,13 @@ void Renderer::PreRender(bool PickMode)
     	m_Initialised=true;
 	}
 	
+	if (!m_InitLights)
+	{
+		// builds the default camera light
+		ClearLights();
+		m_InitLights=false;
+	}
+	
 	if (m_ClearFrame)
 	{
 		glClearColor(m_BGColour.r,m_BGColour.g,m_BGColour.b,m_BGColour.a);	
@@ -200,7 +205,6 @@ void Renderer::PreRender(bool PickMode)
 	
 	if (m_FeedBack)
 	{       	
-		
 		glEnable(GL_TEXTURE_2D);
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_LIGHTING);
@@ -226,8 +230,6 @@ void Renderer::PreRender(bool PickMode)
 		glEnable(GL_LIGHTING);
 		glDisable(GL_TEXTURE_2D);
 	}
-	
-
 	
 	if (m_FPSDisplay && !PickMode)
 	{
@@ -272,7 +274,7 @@ void Renderer::PreRender(bool PickMode)
 
 void Renderer::BeginScene()
 {
-	if (!m_LoadedFromFlx) ClearIMPrimitives();		
+	ClearIMPrimitives();		
 	PreRender();
 	glPushMatrix();
 }
@@ -284,7 +286,7 @@ void Renderer::EndScene()
 	RenderIMPrimitives();
 	PostRender();
 		
-	if (m_LoadedFromFlx) ClearIMPrimitives();
+	ClearIMPrimitives();
 	
 	timeval ThisTime;
 	// stop valgrind complaining
@@ -551,8 +553,6 @@ void Renderer::ClearIMPrimitives()
 {
 	for(vector<IMItem*>::iterator i=m_IMRecord.begin(); i!=m_IMRecord.end(); ++i)
 	{
-		// only delete the primitive pointer if we've created it...
-		if (m_LoadedFromFlx) delete (*i)->m_Primitive;
 		delete *i;
 	}
 	

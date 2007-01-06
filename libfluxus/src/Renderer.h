@@ -147,6 +147,7 @@ private:
 	void InitFeedback();
 	
 	bool  m_Initialised;
+	bool  m_InitLights;
 	int   m_Width,m_Height;
 	bool  m_MotionBlur;
 	float m_Fade;
@@ -196,9 +197,6 @@ private:
     // loaded from an flx file
     void RenderIMPrimitives();
     void ClearIMPrimitives();
-
-    // need to know, so we can delete the IM primitives newed by the loader.
-    bool m_LoadedFromFlx;
 
 	// info for picking mode
 	struct SelectInfo

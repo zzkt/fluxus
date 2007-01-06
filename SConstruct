@@ -29,8 +29,12 @@ LibList      = [["m", "math.h"],
 		["tiff", "tiff.h"],
 		["z", "zlib.h"],
 		["png", "libpng/png.h"],
-		["ode", "ode/ode.h"]]
-
+		["ode", "ode/ode.h"],
+		["jack", "jack/jack.h"],
+		["sndfile", "sndfile.h"],
+		["fftw3", "fftw3.h"],
+		["lo", "lo/lo.h"]]
+		
 Source = ["src/GLEditor.cpp", 
 		"src/Interpreter.cpp",
 		"src/Repl.cpp",
@@ -47,6 +51,10 @@ env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC
 Default(env.Program(source = Source, target = Target))
 env.Append(CCFLAGS=' -DFLUXUS_MAJOR_VERSION='+MajorVersion)
 env.Append(CCFLAGS=' -DFLUXUS_MINOR_VERSION='+MinorVersion)
+
+# use one install environment and pass it around - 
+# scons seems to prefer it that way?
+InstallEnv = Environment()
 
 if env['PLATFORM'] == 'darwin':
 	env.Replace(LINK = "macos/libtool --mode=link g++")
@@ -83,7 +91,7 @@ if not GetOption('clean'):
 			
 	# enable users to enable multitexturing manually
 	if ARGUMENTS.get("MULTITEXTURE",1)=="1":
-		env.Append(CCFLAGS=' -DENABLE_MULTITEXTURING')
+		env.Append(CCFLAGS=' -DENABLE_MULTITEXTURE')
 		
 	env = conf.Finish()
 	# ... but we shouldn't forget to add them to LIBS manually
@@ -108,8 +116,9 @@ if env['PLATFORM'] == 'darwin':
 	env.Alias("dmg", env.DiskImage('Fluxus-' + FluxusVersion + '.dmg',
 				       DmgFiles))
 else:
-	env.Install(Install, Target)
-	env.Alias('install', Prefix)
+	InstallEnv.Install(Install, Target)
+	InstallEnv.Alias('install', Prefix)
 
 # call the core library builder and the scheme modules
-SConscript(dirs=Split("libfluxus modules"), exports = ["Prefix","FluxusVersion"])
+SConscript(dirs=Split("libfluxus modules"), 
+		exports = ["InstallEnv","Prefix","FluxusVersion"])

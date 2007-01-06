@@ -1,10 +1,28 @@
+; Copyright (C) 2007 Dave Griffiths
+;
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 2 of the License, or
+; (at your option) any later version.
+;
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with this program; if not, write to the Free Software
+; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
 (module fluxus-camera mzscheme
 	(require fluxus-engine)
 	(provide 
 		input-camera
-		camera-matrix
-		update-camera)
+		set-camera-transform
+		get-camera-transform
+		reset-camera)
 		
+	(define camera-locked #f)
 	(define camera-matrix (mtranslate (vector 0 1 -10)))
 	(define camera-position (vector 0 0 -10))
 	(define camera-rot-now (vector 0 0 0 1))
@@ -12,7 +30,22 @@
 	(define click-mouse (vector 0 0))
 	(define last-mouse (vector 0 0))
 	(define last-button 0)
+	
+	(define (reset-camera)
+		(set! camera-matrix (mtranslate (vector 0 1 -10)))
+		(set! camera-position (vector 0 0 -10))
+		(set! camera-rot-now (vector 0 0 0 1))
+		(set! camera-rot-start (vector 0 0 0 1))
+		(set! camera-locked #f)
+		(update-camera))
 
+	(define (set-camera-transform m)
+		(set! camera-locked #t)
+		(set! camera-matrix m))
+
+	(define (get-camera-transform)
+		camera-matrix)
+	
 	; schemified from Artem's code in FluxusMain.cpp
 	(define (on-unit-sphere mx my)
 	  (let ((mag (+ (* mx mx) (* my my))))
@@ -64,15 +97,15 @@
                                                     	 (- (/ (- y (vector-ref last-mouse 1)) 50.0))))))
         	 (vector-set! last-mouse 0 x)
         	 (vector-set! last-mouse 1 y)
-        	 (update-camera)))))
-
+        	 (if (not camera-locked) (update-camera))))))
 
 	(define (update-camera)
-	  (set! camera-matrix
-	   (mmul (mtranslate camera-position)
-        	 (qtomatrix (qconjugate 
+	  	(set! camera-matrix
+	  	 (mmul (mtranslate camera-position)
+        		 (qtomatrix (qconjugate 
                     	 (qmul camera-rot-now
-                        	   camera-rot-start))))))
+                        	   camera-rot-start)))))
+		(set-ortho-zoom (vector-ref camera-position 2)))
 
 	; set the initial camera matrix
 	(update-camera)

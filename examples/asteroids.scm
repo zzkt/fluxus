@@ -23,9 +23,10 @@
 
 (clip 1 100000)
 (camera-lag 0.02)
-(set-camera-transform (mmul (mmul (mrotate (vector 0 -90 0))
-                                  (mrotate (vector -5 0 0)))
-                                  (mtranslate (vector 0 5 10))))
+(reset-camera)
+
+(set-camera-transform (mmul (mtranslate (vector 0 -5 -10))
+                            (mrotate (vector 0 90 0))))
 
 (define WORLD_SIZE 2000)
 
@@ -245,19 +246,21 @@
 
 (define (player-update player)
     (let ((rot (vector 0 0 0)))
-    (cond 
-        ((key-pressed "q") (set! rot (vector (* (delta) -10) 0 0)))
-        ((key-pressed "a") (set! rot (vector (* (delta) 10) 0 0)))
-        ((key-pressed "o") (set! rot (vector 0 (* (delta) 10) 0)))
-        ((key-pressed "p") (set! rot (vector 0 (* (delta) -10) 0)))
-        ((key-pressed "h") 
+    
+    (if (key-pressed "q") (set! rot (vector (* (delta) -10) 0 0)))
+    (if (key-pressed "a") (set! rot (vector (* (delta) 10) 0 0)))
+    (if (key-pressed "o") (set! rot (vector 0 (* (delta) 10) 0)))
+    (if (key-pressed "p") (set! rot (vector 0 (* (delta) -10) 0)))
+    (if (key-pressed "h") 
+        (begin
             (set-pos player (vmul (rndvec) WORLD_SIZE))
-            (set-dir player (rndvec)))
-        ((key-pressed "z")
-            (set-speed player (- (get-speed player) 1))) 
-        ((key-pressed "x")
-            (set-speed player (+ (get-speed player) 1))) 
-        ((key-pressed " ")
+            (set-dir player (rndvec))))
+    (if (key-pressed "z")
+        (set-speed player (- (get-speed player) 1))) 
+    (if (key-pressed "x")
+        (set-speed player (+ (get-speed player) 1))) 
+    (if (key-pressed " ")
+        (begin
             (bullet-fire (player-get-bullets player) (get-pos player) 
                 (vmul (get-dir player) (+ (- (get-speed player)) 500 )))))
             

@@ -8,7 +8,7 @@ import os, os.path
 
 Target       = "fluxus-engine.so"
 
-Import("Prefix", "FluxusVersion", "CollectsLocation", "BinaryModulesLocation")
+Import("InstallEnv", "FluxusVersion", "CollectsLocation", "BinaryModulesLocation")
 
 Install      = BinaryModulesLocation
 LibPaths     = Split("../../libfluxus/ /usr/local/lib /usr/local/lib/plt /usr/lib")
@@ -36,6 +36,4 @@ env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC
 		  SHLIBPREFIX = "")
 
 Default(env.SharedLibrary(source = Source, target = Target))
-	
-env.Install(Install, Target)
-env.Alias('install', Prefix)
+InstallEnv.Install(Install, Target)

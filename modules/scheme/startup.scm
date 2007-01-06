@@ -13,3 +13,4 @@
 ; is called for the right version of fluxus
 
 ; you can add your own commands here which will be run on startup
+(start-audio "alsa_pcm:capture_1" 1024 44100)

@@ -5,7 +5,7 @@
 
 import os
 	 
-Import("Prefix", "FluxusVersion", "CollectsLocation", "BinaryModulesLocation")
+Import("InstallEnv", "FluxusVersion", "CollectsLocation", "BinaryModulesLocation")
 
 Scripts    = ["fluxus-boot.scm", 
 			  "fluxus-canvas.ss", 
@@ -17,8 +17,6 @@ Scripts    = ["fluxus-boot.scm",
 Install        = CollectsLocation
 InstallStartup = os.environ["HOME"]+"/.fluxus/"
 
-env = Environment()
-env.Install(Install, Scripts)
-env.Install(InstallStartup, ["startup.scm"])
-env.Alias('install', Install)
-env.Alias('install', InstallStartup)
+InstallEnv.Install(Install, Scripts)
+InstallEnv.Install(InstallStartup, ["startup.scm"])
+InstallEnv.Alias('install', InstallStartup)
