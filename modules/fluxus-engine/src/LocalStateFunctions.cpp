@@ -691,45 +691,46 @@ Scheme_Object *shader(int argc, Scheme_Object **argv)
 
 Scheme_Object *shader_set(int argc, Scheme_Object **argv)
 {	
- 	GLSLShader *shader=Engine::Get()->State()->Shader;
-/*
+   	ArgCheck("shader-set", "l", argc, argv);
+	GLSLShader *shader=Engine::Get()->State()->Shader;
+
 	if (shader)
 	{
 		// vectors seem easier to handle than lists with this api
-		SCM paramvec = scm_vector(s_params);
+		Scheme_Object *paramvec = scheme_list_to_vector(argv[0]);
 
 		// apply to set parameters
 		shader->Apply();
 
-		for (unsigned int n=0; n<scm_c_generalized_vector_length(paramvec); n+=2)
-		{
-			SCM arg=scm_vector_ref(paramvec, scm_from_int(n));
+		Scheme_Object **vecptr = SCHEME_VEC_ELS(paramvec);
 
-			if (scm_is_string(arg))
+		for (int n=0; n<SCHEME_VEC_SIZE(paramvec); n+=2)
+		{
+			if (SCHEME_CHAR_STRINGP(vecptr[n]))
 			{
 				// get the parameter name
-				char *param = SCHEME_BYTE_STR_VAL(arg);
+				char *param = StringFromScheme(vecptr[n]);
 
 				// get the value
-				SCM arg=scm_vector_ref(paramvec, scm_from_int(n+1));
+				Scheme_Object *arg=vecptr[n+1];
 
-				if (scm_is_number(arg))
+				if (SCHEME_NUMBERP(arg))
 				{
-					if (scm_is_integer(arg)) shader->SetInt(param,IntFromScheme(arg));
+					if (SCHEME_EXACT_INTEGERP(arg)) shader->SetInt(param,IntFromScheme(arg));
 					else shader->SetFloat(param,(float)FloatFromScheme(arg));
 				}
-				else if (scm_is_vector(arg))
+				else if (SCHEME_VECTORP(arg))
 				{
-					if (scm_c_generalized_vector_length(arg) == 3)
+					if (SCHEME_VEC_SIZE(arg) == 3)
 					{
 						dVector vec;
-						flx_floats_from_scm(arg,vec.arr());
+						FloatsFromScheme(arg,vec.arr(),3);
 						shader->SetVector(param,vec);
 					}
-					else if (scm_c_generalized_vector_length(arg) == 4)
+					else if (SCHEME_VEC_SIZE(arg) == 4)
 					{
 						dColour vec;
-						flx_floats_from_scm(arg,vec.arr());
+						FloatsFromScheme(arg,vec.arr(),4);
 						shader->SetColour(param,vec);
 					}
 					else
@@ -741,8 +742,6 @@ Scheme_Object *shader_set(int argc, Scheme_Object **argv)
 				{
 					cerr<<"shader has found an argument type it can't send, numbers and vectors only"<<endl;
 				}
-
-				free(param);
 			}
 			else
 			{
@@ -751,7 +750,7 @@ Scheme_Object *shader_set(int argc, Scheme_Object **argv)
 		}
 		GLSLShader::Unapply();
 	}   
-	*/
+	
 	return scheme_void;
 }
 
@@ -798,5 +797,5 @@ void LocalStateFunctions::AddGlobals(Scheme_Env *env)
 	scheme_add_global("hide",scheme_make_prim_w_arity(hide,"hide",1,1), env);
 	scheme_add_global("selectable",scheme_make_prim_w_arity(selectable,"selectable",1,1), env);
 	scheme_add_global("shader",scheme_make_prim_w_arity(shader,"shader",2,2), env);
-	scheme_add_global("shader-set!",scheme_make_prim_w_arity(shader_set,"shader-set",1,1), env);
+	scheme_add_global("shader-set",scheme_make_prim_w_arity(shader_set,"shader-set",1,1), env);
 }

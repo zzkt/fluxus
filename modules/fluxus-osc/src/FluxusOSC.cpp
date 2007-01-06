@@ -84,50 +84,44 @@ Scheme_Object *osc_send(int argc, Scheme_Object **argv)
 {
 	if (!SCHEME_CHAR_STRINGP(argv[0])) scheme_wrong_type("osc-send", "string", 0, argc, argv);
 	if (!SCHEME_CHAR_STRINGP(argv[1])) scheme_wrong_type("osc-send", "string", 1, argc, argv);
+	if (!SCHEME_LISTP(argv[2])) scheme_wrong_type("osc-send", "list", 2, argc, argv);
 
-	// todo: fix this...
-	//SCM_ASSERT(SCM_LISTP(s_arglist), s_arglist, SCM_ARG2, "osc-send");
 	char *msg=scheme_utf8_encode_to_buffer(SCHEME_CHAR_STR_VAL(argv[0]),SCHEME_CHAR_STRLEN_VAL(argv[0]),NULL,0);
 	char *types=scheme_utf8_encode_to_buffer(SCHEME_CHAR_STR_VAL(argv[1]),SCHEME_CHAR_STRLEN_VAL(argv[1]),NULL,0);
 	
-/*
-	// vectors seem easier to handle than lists with this api
-	SCM argvec = scm_vector(s_arglist);
+	Scheme_Object *argvec = scheme_list_to_vector(argv[2]);
+	Scheme_Object **argptr = SCHEME_VEC_ELS(argvec);
 	
 	vector<OSCData*> oscargs;
-	for (unsigned int n=0; n<scm_c_generalized_vector_length(argvec); n++)
+	for (unsigned int n=0; n<(unsigned int)SCHEME_VEC_SIZE(argvec); n++)
 	{
-		SCM arg=scm_vector_ref(argvec, scm_from_int(n));
+		Scheme_Object *arg=argptr[n];
 
-		if (scm_is_number(arg))// ||  scm_is_true(scm_exact_p(arg)) || scm_is_true(scm_inexact_p(arg)))
+		if (SCHEME_NUMBERP(arg))// ||  scm_is_true(scm_exact_p(arg)) || scm_is_true(scm_inexact_p(arg)))
 		{
 			if (n<strlen(types))
 			{
 				if (types[n]=='f') oscargs.push_back(new OSCFloat(scheme_real_to_double(arg)));
-				else if (types[n]=='i') oscargs.push_back(new OSCInt(scm_to_uint(arg)));
+				else if (types[n]=='i') 
+				{
+					unsigned long val=0;
+					scheme_get_unsigned_int_val(arg,&val);
+					oscargs.push_back(new OSCInt(val));
+				}
 			}
 		}
-		else if (scm_is_string(arg))
+		else if (SCHEME_CHAR_STRINGP(arg))
 		{
-			char *argstring=scm_to_locale_string(arg);
+			char *argstring=scheme_utf8_encode_to_buffer(SCHEME_CHAR_STR_VAL(arg),SCHEME_CHAR_STRLEN_VAL(arg),NULL,0);;
 			oscargs.push_back(new OSCString(argstring));
-			free(argstring);
 		}
 		else
 		{
 			cerr<<"osc-send has found an argument type it can't send, numbers and strings only"<<endl;
-			free(msg);
-			free(types);
-    		return SCM_UNSPECIFIED;
+    		return scheme_void;
 		}
 	}
-
-	Fluxus->SendOSC(msg,oscargs);
-	free(msg);
-	free(types);
-	
-*/
-
+	OSCClient->Send(msg,oscargs);
     return scheme_void;
 }
 

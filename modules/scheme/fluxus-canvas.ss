@@ -4,6 +4,7 @@
 (module fluxus-canvas mzscheme
 	(require fluxus-engine)
 	(require fluxus-audio)
+	(require (lib "fluxus-input.ss" "fluxus-0.12"))
 	(require (lib "fluxus-camera.ss" "fluxus-0.12"))
 	(provide 
 		fluxus-reshape-callback 
@@ -32,12 +33,6 @@
 (define height 0)
 
 ;-------------------------------------------------
-; keyboard state
-
-;-------------------------------------------------
-; mouse state
-
-;-------------------------------------------------
 ; callbacks - these are called directly from the
 ; fluxus application
 
@@ -51,10 +46,11 @@
 ; input functions
 
 (define (fluxus-input-callback key button special state x y mod)
-  (input-camera key button special state x y mod width height))
+	(register-down key button special state x y mod)
+	(input-camera key button special state x y mod width height))
 
 (define (fluxus-input-release-callback key button special state x y mod)
-  0)
+	(register-up key button special state x y mod))
 
 ; the main callback every frame
 
@@ -66,5 +62,5 @@
   (end-scene)
   (tick-physics)
   (update-audio))
-
+  
 )

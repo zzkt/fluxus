@@ -7,9 +7,11 @@ import os
 	 
 Import("Prefix", "FluxusVersion", "CollectsLocation", "BinaryModulesLocation")
 
-Scripts    = ["fluxus-canvas.ss", 
-			  "fluxus-obj-import.ss", 
+Scripts    = ["fluxus-boot.scm", 
+			  "fluxus-canvas.ss", 
+			  "fluxus-input.ss",
 			  "fluxus-camera.ss",
+			  "fluxus-obj-import.ss", 
 			  "autodoc.ss" ]
 
 Install        = CollectsLocation

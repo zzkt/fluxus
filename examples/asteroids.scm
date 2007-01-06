@@ -14,6 +14,7 @@
 
 ; ctrl-h to hide the code!
 
+(desiredfps 1000)
 (clear)
 (blur 0)
 (define current-bullet 0)
@@ -47,10 +48,10 @@
 (define (update-ob ob)
     (set-dir ob (vtransform (get-dir ob) 
                 (mrotate (qaxisangle (get-up ob) 
-                (f32vector-ref (get-rotvel ob) 0))))) 
+                (vector-ref (get-rotvel ob) 0))))) 
     (set-up ob (vtransform (get-up ob) 
                 (mrotate (qaxisangle (get-dir ob) 
-                (f32vector-ref (get-rotvel ob) 1))))) 
+                (vector-ref (get-rotvel ob) 1))))) 
 
     ;(set-speed ob (* (get-speed ob) 0.998))
     (set-pos ob (vadd (get-pos ob) 
@@ -58,18 +59,18 @@
 
     ; clamp pos
     (let ((pos (get-pos ob)))
-    (cond ((< (f32vector-ref pos 0) (- WORLD_SIZE))
-              (f32vector-set! pos 0 WORLD_SIZE))
-          ((< (f32vector-ref pos 1) (- WORLD_SIZE))
-              (f32vector-set! pos 1 WORLD_SIZE))
-          ((< (f32vector-ref pos 2) (- WORLD_SIZE))
-              (f32vector-set! pos 2 WORLD_SIZE))
-          ((> (f32vector-ref pos 0) WORLD_SIZE)
-              (f32vector-set! pos 0 (- WORLD_SIZE)))
-          ((> (f32vector-ref pos 1) WORLD_SIZE)
-              (f32vector-set! pos 1 (- WORLD_SIZE)))          
-          ((> (f32vector-ref pos 2) WORLD_SIZE)
-              (f32vector-set! pos 2 (- WORLD_SIZE))))
+    (cond ((< (vector-ref pos 0) (- WORLD_SIZE))
+              (vector-set! pos 0 WORLD_SIZE))
+          ((< (vector-ref pos 1) (- WORLD_SIZE))
+              (vector-set! pos 1 WORLD_SIZE))
+          ((< (vector-ref pos 2) (- WORLD_SIZE))
+              (vector-set! pos 2 WORLD_SIZE))
+          ((> (vector-ref pos 0) WORLD_SIZE)
+              (vector-set! pos 0 (- WORLD_SIZE)))
+          ((> (vector-ref pos 1) WORLD_SIZE)
+              (vector-set! pos 1 (- WORLD_SIZE)))          
+          ((> (vector-ref pos 2) WORLD_SIZE)
+              (vector-set! pos 2 (- WORLD_SIZE))))
      (set-pos ob pos)))
     
 ; ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -129,7 +130,7 @@
     (pdata-op "*" "c" 0.99)
     (let ((age (pdata-get "c" 0)))
     (ungrab)
-    (if (< (f32vector-ref age 0) 0.1)
+    (if (< (vector-ref age 0) 0.1)
         1
         0)))
 

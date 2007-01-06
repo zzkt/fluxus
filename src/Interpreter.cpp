@@ -18,12 +18,17 @@ Interpreter::~Interpreter()
 Scheme_Object *Interpreter::Interpret(const string &str, bool abort)
 {	
 	Scheme_Object *ret=NULL;
-	Scheme_Object *outport = scheme_make_byte_string_output_port();
-	Scheme_Object *errport = scheme_make_byte_string_output_port();
+	Scheme_Object *outport=NULL;
+	Scheme_Object *errport=NULL;
 
-	scheme_set_param(scheme_current_config(), MZCONFIG_OUTPUT_PORT, outport);
-	scheme_set_param(scheme_current_config(), MZCONFIG_ERROR_PORT, errport);
-
+	if (m_Repl) 
+	{
+		outport = scheme_make_byte_string_output_port();
+		errport = scheme_make_byte_string_output_port();
+		scheme_set_param(scheme_current_config(), MZCONFIG_OUTPUT_PORT, outport);
+		scheme_set_param(scheme_current_config(), MZCONFIG_ERROR_PORT, errport);
+	}
+	
   	Scheme_Object *curout=NULL;
  	mz_jmp_buf * volatile save, fresh;
 	
@@ -47,13 +52,8 @@ Scheme_Object *Interpreter::Interpret(const string &str, bool abort)
 	{
 		long size=0;
 		char *msg;
-		msg=scheme_get_sized_byte_string_output(outport,&size);
-				
-		if (size>0)
-		{
-			if (m_Repl) m_Repl->Print(string(msg));
-			else cerr<<msg<<endl;
-		}
+		msg=scheme_get_sized_byte_string_output(outport,&size);	
+		if (size>0) m_Repl->Print(string(msg));
 	}	
 	
 	if (errport!=NULL)
@@ -61,11 +61,7 @@ Scheme_Object *Interpreter::Interpret(const string &str, bool abort)
 		long size=0;
 		char *msg;
 		msg=scheme_get_sized_byte_string_output(errport,&size);
-		if (size>0)
-		{
-			if (m_Repl) m_Repl->Print(string(msg));
-			else cerr<<msg<<endl;
-		}
+		if (size>0) m_Repl->Print(string(msg));
 	}	
 	
 	return ret;

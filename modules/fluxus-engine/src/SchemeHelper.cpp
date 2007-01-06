@@ -108,6 +108,10 @@ void SchemeHelper::ArgCheck(const string &funcname, const string &format, int ar
 					if (!SCHEME_CHAR_STRINGP(argv[n])) scheme_wrong_type(funcname.c_str(), "string", n, argc, argv);
 				break;
 
+				case 'l':
+					if (!SCHEME_LISTP(argv[n])) scheme_wrong_type(funcname.c_str(), "list", n, argc, argv);
+				break;
+				
 				case '?':
 				break;
 

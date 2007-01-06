@@ -2,7 +2,8 @@
 	(require fluxus-engine)
 	(provide 
 		input-camera
-		camera-matrix)
+		camera-matrix
+		update-camera)
 		
 	(define camera-matrix (mtranslate (vector 0 1 -10)))
 	(define camera-position (vector 0 0 -10))
@@ -24,7 +25,7 @@
 
 
 	(define (input-camera key button special state x y mod width height)
-	  (if (and (zero? key) (eq? special -1)) ; = mouse event
+	  (if (and (number? key) (zero? key) (eq? special -1)) ; = mouse event
     	  (cond 
         	((zero? state) ; click
         	 (vector-set! last-mouse 0 x)
@@ -72,5 +73,8 @@
         	 (qtomatrix (qconjugate 
                     	 (qmul camera-rot-now
                         	   camera-rot-start))))))
+
+	; set the initial camera matrix
+	(update-camera)
 
 )

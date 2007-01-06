@@ -32,20 +32,19 @@
 
 using namespace std;
 
-static const string INIT_SCRIPT=".fluxus-plt.scm";
 static const string ENGINE_CALLBACK="(fluxus-frame-callback)";
 static const string RESHAPE_CALLBACK="fluxus-reshape-callback";
 static const string INPUT_CALLBACK="fluxus-input-callback";
 static const string INPUT_RELEASE_CALLBACK="fluxus-input-release-callback";
-static const string STARTUP_SCRIPT="(load (string-append (path->string (find-system-path 'home-dir)) \".fluxus/startup.scm\"))";
+
+static const string STARTUP_SCRIPT="(define fluxus-version \"%d.%d\") \
+									(load (string-append (path->string (find-system-path 'home-dir)) \".fluxus/startup.scm\"))";
 
 FluxusMain *app = NULL;
 Interpreter *interpreter = NULL; 
 
 void DisplayCallback()
 {    
-	//glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	
 	string fragment = app->GetScriptFragment();
     if (fragment!="")
     {
@@ -69,16 +68,15 @@ void ReshapeCallback(int width, int height)
 void KeyboardCallback(unsigned char key,int x, int y)
 {
 	app->Handle(key, -1, -1, -1, x, y, glutGetModifiers());
-
 	char code[256];
-	snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),key,-1,-1,-1,x,y,glutGetModifiers());
+	snprintf(code,256,"(%s #\\%c %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),key,-1,-1,-1,x,y,glutGetModifiers());
 	interpreter->Interpret(code);
 }
 
 void KeyboardUpCallback(unsigned char key,int x, int y)
 {
 	char code[256];
-	snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_RELEASE_CALLBACK.c_str(),key,-1,-1,-1,x,y,0);
+	snprintf(code,256,"(%s #\\%c %d %d %d %d %d %d)",INPUT_RELEASE_CALLBACK.c_str(),key,-1,-1,-1,x,y,0);
 	interpreter->Interpret(code);
 }
 
@@ -126,13 +124,17 @@ int main(int argc, char *argv[])
 	scheme_set_stack_base(stack_start, 1);  
   
 	interpreter = new Interpreter(scheme_basic_env());
-	interpreter->Interpret(STARTUP_SCRIPT,true);
+	
+	char startup[1024];
+	// insert the version number
+	snprintf(startup,1024,STARTUP_SCRIPT.c_str(),FLUXUS_MAJOR_VERSION,FLUXUS_MINOR_VERSION);
+	interpreter->Interpret(startup,true);
 	
 	srand(time(NULL));
 		
+  	glutInit(&argc,argv);
 	glutInitWindowSize(720,576);
 	app = new FluxusMain(interpreter,720,576);
-  	glutInit(&argc,argv);
 	glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH|GLUT_STENCIL);
 	char windowtitle[256];
 	snprintf(windowtitle,256,"fluxus %d.%d",FLUXUS_MAJOR_VERSION,FLUXUS_MINOR_VERSION);
