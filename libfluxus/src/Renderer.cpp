@@ -164,7 +164,7 @@ void Renderer::PreRender(bool PickMode)
 	{
 		// builds the default camera light
 		ClearLights();
-		m_InitLights=false;
+		m_InitLights=true;
 	}
 	
 	if (m_ClearFrame)
