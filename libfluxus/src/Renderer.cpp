@@ -185,6 +185,7 @@ void Renderer::BeginScene(bool PickMode)
 	
 	if (m_MotionBlur)
 	{
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	
 		glEnable(GL_COLOR_MATERIAL);
 		glPolygonMode(GL_FRONT,GL_FILL);
 		glDisable(GL_DEPTH_TEST);

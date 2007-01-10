@@ -67,7 +67,8 @@ public:
 	void HideCursor() { m_ShowCursor=!m_ShowCursor; m_Renderer.ShowCursor(m_ShowCursor); }
 	void StartOSC(const string &port);
 	char TypeFromOSC(unsigned int index);
-	float NumberFromOSC(unsigned int index);
+	float FloatFromOSC(unsigned int index);
+	int IntFromOSC(unsigned int index);
 	string StringFromOSC(unsigned int index);
 	bool MsgOSC(const string &token);
 	string GetLastMsg();

@@ -41,6 +41,7 @@ void FluxusTurtleBinding::RegisterProcs()
 	scm_c_define_gsubr("turtle-attach",1,0,0,(CALLBACK_CAST)  	   turtle_attach);
 	scm_c_define_gsubr("turtle-skip",1,0,0,(CALLBACK_CAST)  	   turtle_skip);
 	scm_c_define_gsubr("turtle-position",0,0,0,(CALLBACK_CAST)  	   turtle_position);
+	scm_c_define_gsubr("turtle-seek",1,0,0,(CALLBACK_CAST)  	   turtle_seek);
 }
 
 
@@ -122,4 +123,10 @@ SCM FluxusTurtleBinding::turtle_skip(SCM s_count)
 SCM FluxusTurtleBinding::turtle_position()
 {
 	return scm_from_int(turtle.Position());
+}
+
+SCM FluxusTurtleBinding::turtle_seek(SCM s_count)
+{
+	turtle.SetPosition(scm_to_int(s_count));
+	return SCM_UNSPECIFIED;
 }

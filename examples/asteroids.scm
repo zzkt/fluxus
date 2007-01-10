@@ -14,6 +14,7 @@
 
 ; ctrl-h to hide the code!
 
+(show-fps 1)
 (clear)
 (blur 0)
 (define current-bullet 0)

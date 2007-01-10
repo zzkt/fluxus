@@ -470,7 +470,29 @@ char FluxusMain::TypeFromOSC(unsigned int index)
 	return '0';
 }
 
-float FluxusMain::NumberFromOSC(unsigned int index) 
+float FluxusMain::FloatFromOSC(unsigned int index) 
+{ 
+	if (!m_OSCServer) 
+	{
+		cerr<<"osc server not running..."<<endl;
+		return '0';
+	}
+	
+	vector<OSCData*> args;
+	if (m_OSCServer->GetArgs(args))
+	{
+		if (index<args.size())
+		{
+			if (args[index]->Type()=='f')
+			{
+				return static_cast<OSCFloat*>(args[index])->Value;
+			}
+		}
+	}
+	return 0;
+}
+
+int FluxusMain::IntFromOSC(unsigned int index) 
 { 
 	if (!m_OSCServer) 
 	{
@@ -485,11 +507,7 @@ float FluxusMain::NumberFromOSC(unsigned int index)
 		{
 			if (args[index]->Type()=='i')
 			{
-				return (float)static_cast<OSCInt*>(args[index])->Value;
-			}
-			else if (args[index]->Type()=='f')
-			{
-				return static_cast<OSCFloat*>(args[index])->Value;
+				return static_cast<OSCInt*>(args[index])->Value;
 			}
 		}
 	}

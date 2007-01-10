@@ -63,8 +63,8 @@ SCM FluxusOSCBinding::osc(SCM s_index)
 	unsigned int index=(unsigned int)scm_to_double(s_index);
 	char type = Fluxus->TypeFromOSC(index);
 	SCM ret;
-	if (type=='f') ret=scm_from_double(Fluxus->NumberFromOSC(index));
-	else if (type=='i') ret=scm_from_uint((int)Fluxus->NumberFromOSC(index));
+	if (type=='f') ret=scm_from_double(Fluxus->FloatFromOSC(index));
+	else if (type=='i') ret=scm_from_uint(Fluxus->IntFromOSC(index));
 	else if (type=='s') 
 	{
 		string value=Fluxus->StringFromOSC(index);

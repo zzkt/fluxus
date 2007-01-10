@@ -213,21 +213,25 @@ void fluxus::MakeSphere(PolyPrimitive *p, float radius, int hsegments, int rsegm
 
 void fluxus::MakeNURBSSphere(NURBSPrimitive *p, float radius, int hsegments, int rsegments)
 {
-	p->Init(3,3,hsegments,rsegments);
+	p->Init(4,4,hsegments,rsegments);
 			
 	for (int n=-3; n<=hsegments+2; n++) p->AddUKnot(n/(float)hsegments);
 	for (int n=-1; n<=rsegments; n++) p->AddVKnot(n/(float)rsegments);
 	
-	float radpersegment = (360/(float)(rsegments-3))*DEG_CONV;
-	for (int j=-1; j<=hsegments+1; j++)
+	float radpersegment = (360/(float)(rsegments-5))*DEG_CONV;
+	for (int j=-1; j<=hsegments; j++)
 	{
-		float scale = sin((j/(float)hsegments)*180*DEG_CONV);
-		float height = cos((j/(float)hsegments)*180*DEG_CONV)*radius;
+		float scale = sin((j/(float)(hsegments-1))*180*DEG_CONV);
+		float height = cos((j/(float)(hsegments-1))*180*DEG_CONV)*radius;
 				
 		for (int i=0; i<rsegments; i++)
 		{			
-			p->AddCV(dVector(sin(i*radpersegment)*radius*scale,height,cos(i*radpersegment)*radius*scale));
-			p->AddN(dVector(sin(i*radpersegment)*scale,height,cos(i*radpersegment)*scale));
+			p->AddCV(dVector(sin(i*radpersegment)*radius*scale,height,
+			                 cos(i*radpersegment)*radius*scale));
+							 
+			p->AddN(dVector(sin(i*radpersegment)*scale,height,
+			                cos(i*radpersegment)*scale));
+							
 			p->AddTex(dVector(i/(float)rsegments,j/(float)hsegments,0));
 		}
 	}
@@ -235,7 +239,7 @@ void fluxus::MakeNURBSSphere(NURBSPrimitive *p, float radius, int hsegments, int
 
 void fluxus::MakeNURBSPlane(NURBSPrimitive *p, int usegments, int vsegments)
 {
-	p->Init(3,3,usegments,vsegments);
+	p->Init(4,4,usegments,vsegments);
 	
 	for (int n=-1; n<=usegments+1; n++) p->AddUKnot(n/(float)usegments);
 	for (int n=-1; n<=vsegments+1; n++) p->AddVKnot(n/(float)vsegments);

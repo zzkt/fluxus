@@ -63,7 +63,9 @@ SCM FluxusPrimitiveBinding::build_polygons(SCM s_size, SCM s_type)
 	SCM_ASSERT(scm_is_number(s_type), s_type, SCM_ARG2, "build-polygons");
 	
 	PolyPrimitive *Prim = new PolyPrimitive((PolyPrimitive::Type)scm_to_int(s_type));
-	Prim->Resize(scm_to_int(s_size));
+	unsigned int size = scm_to_int(s_size);
+	if (size>0) Prim->Resize(size);
+	else Prim->Resize(1);
     return Prim2Smob(Fluxus->GetRenderer()->AddPrimitive(Prim));
 }
 
