@@ -16,8 +16,8 @@
 
 #include <ode/ode.h>
 #include "Physics.h"
-#include <State.h>
-#include <Primitive.h>
+#include "State.h"
+#include "Primitive.h"
 
 using namespace fluxus;
 

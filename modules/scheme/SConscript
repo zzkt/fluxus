@@ -3,20 +3,18 @@
 #
 # Should be ok for cross platform
 
-import os
-	 
-Import("InstallEnv", "FluxusVersion", "CollectsLocation", "BinaryModulesLocation")
+import os	 
+Import("env", "CollectsLocation")
 
 Scripts    = ["fluxus-boot.scm", 
 			  "fluxus-canvas.ss", 
 			  "fluxus-input.ss",
 			  "fluxus-camera.ss",
-			  "fluxus-obj-import.ss", 
-			  "autodoc.ss" ]
+			  "fluxus-obj-import.ss" ]
 
 Install        = CollectsLocation
 InstallStartup = os.environ["HOME"]+"/.fluxus/"
 
-InstallEnv.Install(Install, Scripts)
-InstallEnv.Install(InstallStartup, ["startup.scm"])
-InstallEnv.Alias('install', InstallStartup)
+env.Install(Install, Scripts)
+env.Install(InstallStartup, ["startup.scm"])
+env.Alias('install', InstallStartup)

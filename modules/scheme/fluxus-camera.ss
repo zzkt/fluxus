@@ -31,6 +31,18 @@
 	(define last-mouse (vector 0 0))
 	(define last-button 0)
 	
+;; StartFunctionDoc
+;; reset-camera
+;; Description:
+;; Resets the camera transform, useful if it becomes trashed, or you get lost 
+;; somewhere in space. Also turns off camera locking to objects with (lock-camera)
+;; Example:
+;; ; ruin the camera transform
+;; (set-camera-transform (vector 123 41832 28 0.2 128 0.001 123 41832 28 0.2 128 0.001 0.2 100 13 1931)) 
+;; ; set it back to the starting position/orientation
+;; (reset-camera) 
+;; EndFunctionDoc	
+	
 	(define (reset-camera)
 		(set! camera-matrix (mtranslate (vector 0 1 -10)))
 		(set! camera-position (vector 0 0 -10))

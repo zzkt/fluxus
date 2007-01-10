@@ -4,16 +4,11 @@
 # This is the main PLT module for fluxus, containing all core
 # graphics functions
 
-import os, os.path
+Import("env", "BinaryModulesLocation", "MZDYN")
 
-Target       = "fluxus-engine.so"
-
-Import("InstallEnv", "FluxusVersion", "CollectsLocation", "BinaryModulesLocation")
-
-Install      = BinaryModulesLocation
-LibPaths     = Split("../../libfluxus/ /usr/local/lib /usr/local/lib/plt /usr/lib")
-IncludePaths = Split("../../libfluxus/src /usr/local/include /usr/include src")
-Libs =  Split("GL GLU glut GLEW fluxus mzdyn png ode")
+Target = "fluxus-engine.so"
+Install = BinaryModulesLocation
+Libs = Split("GL GLU glut GLEW fluxus png ode")
 
 Source = Split("src/Engine.cpp \
 		src/FluxusEngine.cpp \
@@ -27,13 +22,12 @@ Source = Split("src/Engine.cpp \
 		src/TurtleFunctions.cpp \
 		src/LightFunctions.cpp \
 		src/PhysicsFunctions.cpp \
-		src/TurtleBuilder.cpp")
+		src/TurtleBuilder.cpp " + 
+		MZDYN)
 		
-env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC',
-		  LIBPATH = LibPaths,
-		  CPPPATH = IncludePaths,
-		  LIBS = Libs,
-		  SHLIBPREFIX = "")
-
-Default(env.SharedLibrary(source = Source, target = Target))
-InstallEnv.Install(Install, Target)
+env.SharedLibrary(source = Source, 
+				  target = Target, 
+		  		  LIBS = Libs,
+		  		  SHLIBPREFIX = "")
+						  
+env.Install(Install, Target)

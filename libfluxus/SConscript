@@ -4,18 +4,9 @@
 # Builds a static library of the core rendering code, no need
 # to install, as this is linked to fluxus-engine statically
 
-import os, os.path
+Import("env")
 
-Target       = "libfluxus.a"
-
-LibPaths     = Split("/usr/local/lib /usr/lib")
-IncludePaths = Split("/usr/local/include /usr/include src")
-
-LibList      = [["m", "math.h"],
-		["jpeg", ["stdio.h", "stdlib.h", "jpeglib.h"]],
-		["tiff", "tiff.h"],
-		["z", "zlib.h"],
-		["png", "libpng/png.h"]]
+Target = "libfluxus.a"
 
 Source = Split("src/PData.cpp \
         src/PDataOperator.cpp \
@@ -45,30 +36,5 @@ Source = Split("src/PData.cpp \
 		src/ShadowVolumeGen.cpp \
 		src/Physics.cpp")
 		
-env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC',
-		  LIBPATH = LibPaths,
-		  CPPPATH = IncludePaths)
+env.StaticLibrary(source = Source, target = Target)
 
-Default(env.StaticLibrary(source = Source, target = Target))
-
-if env['PLATFORM'] == 'darwin':
-	env.Replace(LINK = "macos/libtool --mode=link g++")
-	env.Prepend(LINKFLAGS = ["-static"])
-else:
-	LibList += [["X11", "X11/Xlib.h"],
-           	    ["GL", "GL/gl.h"],
-           	    ["GLU", "GL/glu.h"],
-                ["glut", "GL/glut.h"],
-                ["GLEW", "GL/glew.h"],
-				["ode", "ode/ode.h"]]
-	env.Append(LIBPATH = ["/usr/X11R6/lib"])
-	
-	# add the X11 libs on - needed if we are not building on xorg
-	if ARGUMENTS.get("X11",0):
-		LibList=[["Xi", "X11/Xlib.h"],
-				 ["Xmu", "X11/Xlib.h"], 
-				 ["Xext", "X11/Xlib.h"], 
-				 ["Xt", "X11/Xlib.h"], 
-				 ["SM", "X11/Xlib.h"], 
-				 ["ICE", "X11/Xlib.h"]] + LibList;
-	

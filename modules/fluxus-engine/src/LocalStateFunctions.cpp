@@ -24,6 +24,8 @@
 using namespace LocalStateFunctions;
 using namespace SchemeHelper;
 
+// DocSection LocalState
+
 // StartFunctionDoc
 // push
 // Description:

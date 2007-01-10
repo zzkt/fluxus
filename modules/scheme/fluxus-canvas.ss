@@ -16,7 +16,9 @@
 
 ; this script plugs the callbacks from the fluxus
 ; application into the fluxus engine module
-			   
+
+; DocSection Canvas
+		   
 (module fluxus-canvas mzscheme
 	(require fluxus-engine)
 	(require fluxus-audio)
@@ -39,11 +41,37 @@
 (define (set-user-callback! s)
 	(set! user-callback s))
 	
+;; StartFunctionDoc
+;; every-frame function
+;; Description:
+;; Sets a function to be called every time the render is about to draw a new frame.
+;; Example:
+;; (define count 0)
+;;
+;; (define (myfunc)
+;;     (display count)(display " frames have been rendered!")
+;;     (newline)
+;;     (set! count (+ count 1)))
+;;
+;; (every-frame (myfunc)) 
+;; EndFunctionDoc	
+
 ; define the every-frame syntax
 (define-syntax every-frame
   (syntax-rules ()
     ((every-frame expr)
      (set-user-callback! (lambda () expr)))))
+	 
+;; StartFunctionDoc
+;; clear
+;; Description:
+;; Clears out the renderer of all objects and lights. Clears the physics system
+;; and resets the every-frame callback. Generally a Good Thing to put this at the
+;; beginning of scripts to make sure everything is cleared out each time you execute.
+;; Example:
+;; (clear) ; without this we would accumulate a new cube every time F5 was pressed
+;; (build-cube) 
+;; EndFunctionDoc	
 
 (define (clear)
 	(set! user-callback '())

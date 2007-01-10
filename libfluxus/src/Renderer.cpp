@@ -167,17 +167,6 @@ void Renderer::PreRender(bool PickMode)
 		m_InitLights=true;
 	}
 	
-	if (m_ClearFrame)
-	{
-		glClearColor(m_BGColour.r,m_BGColour.g,m_BGColour.b,m_BGColour.a);	
-		if (m_MotionBlur || m_FeedBack) glClear(GL_DEPTH_BUFFER_BIT);
-		else glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);	
-	}
-	
-	if (m_ClearZBuffer)
-	{
-		glClear(GL_DEPTH_BUFFER_BIT);
-	}
 	
 	glMatrixMode (GL_MODELVIEW);
   	glLoadIdentity();
@@ -274,20 +263,27 @@ void Renderer::PreRender(bool PickMode)
 
 void Renderer::BeginScene()
 {
-	ClearIMPrimitives();		
-	PreRender();
-	glPushMatrix();
+	if (m_ClearFrame)
+	{
+		glClearColor(m_BGColour.r,m_BGColour.g,m_BGColour.b,m_BGColour.a);	
+		if (m_MotionBlur || m_FeedBack) glClear(GL_DEPTH_BUFFER_BIT);
+		else glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);	
+	}
+	
+	if (m_ClearZBuffer)
+	{
+		glClear(GL_DEPTH_BUFFER_BIT);
+	}
 }
 	
 void Renderer::EndScene()
 {
-	glPopMatrix();
+	PreRender();
 	m_World.Render();
 	RenderIMPrimitives();
+	ClearIMPrimitives();		
 	PostRender();
-		
-	ClearIMPrimitives();
-	
+			
 	timeval ThisTime;
 	// stop valgrind complaining
 	ThisTime.tv_sec=0;

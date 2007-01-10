@@ -13,20 +13,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #include <sys/time.h>
 #include <iostream>
-#include <fstream>
-#include <cstdlib>
-#include <unistd.h>
-#include <cstdio>
 #include <string>
 #include <GL/glew.h>
 #include <GL/glut.h>
-#include <plt/scheme.h>
 #include "FluxusMain.h"
 #include "Interpreter.h"
 
@@ -37,7 +33,12 @@ static const string RESHAPE_CALLBACK="fluxus-reshape-callback";
 static const string INPUT_CALLBACK="fluxus-input-callback";
 static const string INPUT_RELEASE_CALLBACK="fluxus-input-release-callback";
 
-static const string STARTUP_SCRIPT="(define fluxus-version \"%d.%d\") \
+// I want to pass this in from the SConstruct, but no amount of fiddling
+// with #'es will work with -D to get a string constant as far as I can see
+static const string COLLECTS_LOCATION="/usr/local/lib/plt/collects";
+
+static const string STARTUP_SCRIPT="(define fluxus-collects-location \"%s\") \
+									(define fluxus-version \"%d.%d\") \
 									(load (string-append (path->string (find-system-path 'home-dir)) \".fluxus/startup.scm\"))";
 
 FluxusMain *app = NULL;
@@ -52,9 +53,9 @@ void DisplayCallback()
     }
 	
 	interpreter->Interpret(ENGINE_CALLBACK);
-		
 	app->Render();	
 	glutSwapBuffers();
+		
 }
 
 void ReshapeCallback(int width, int height)
@@ -127,7 +128,8 @@ int main(int argc, char *argv[])
 	
 	char startup[1024];
 	// insert the version number
-	snprintf(startup,1024,STARTUP_SCRIPT.c_str(),FLUXUS_MAJOR_VERSION,FLUXUS_MINOR_VERSION);
+	snprintf(startup,1024,STARTUP_SCRIPT.c_str(),
+		COLLECTS_LOCATION.c_str(),FLUXUS_MAJOR_VERSION,FLUXUS_MINOR_VERSION);
 	interpreter->Interpret(startup,true);
 	
 	srand(time(NULL));

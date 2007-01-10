@@ -3,26 +3,20 @@
 #
 # This is the main PLT module for the fluxus osc functions
 
-import os, os.path
+Import("env", "BinaryModulesLocation", "MZDYN")
 
-Target       = "fluxus-osc.so"
-
-Import("InstallEnv", "FluxusVersion", "CollectsLocation", "BinaryModulesLocation")
-
-Install      = BinaryModulesLocation
-LibPaths     = Split("/usr/local/lib /usr/local/lib/plt /usr/lib")
-IncludePaths = Split("/usr/local/include /usr/include src")
-Libs =  Split("lo mzdyn")
+Target = "fluxus-osc.so"
+Install = BinaryModulesLocation
+Libs = Split("lo")
 
 Source = Split("src/FluxusOSC.cpp \
 		src/OSCServer.cpp \
-		src/OSCCore.cpp")
-		
-env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC',
-		  LIBPATH = LibPaths,
-		  CPPPATH = IncludePaths,
-		  LIBS = Libs,
-		  SHLIBPREFIX = "")
+		src/OSCCore.cpp "+ 
+		MZDYN)
 
-Default(env.SharedLibrary(source = Source, target = Target))
-InstallEnv.Install(Install, Target)
+env.SharedLibrary(source = Source, 
+				  target = Target,
+				  LIBS = Libs,
+				  SHLIBPREFIX = "")
+						 
+env.Install(Install, Target)

@@ -3,26 +3,21 @@
 #
 # This is the main PLT module for the fluxus audio functions
 
-import os, os.path
+Import("env", "BinaryModulesLocation", "MZDYN")
 
 Target       = "fluxus-audio.so"
 
-Import("InstallEnv", "FluxusVersion", "CollectsLocation", "BinaryModulesLocation")
-
 Install      = BinaryModulesLocation
-LibPaths     = Split("/usr/local/lib /usr/local/lib/plt /usr/lib")
-IncludePaths = Split("/usr/local/include /usr/include src")
-Libs =  Split("jack fftw3 sndfile mzdyn")
+Libs =  Split("jack fftw3 sndfile")
 
 Source = Split("src/FluxusAudio.cpp \
 		src/AudioCollector.cpp \
-		src/JackClient.cpp")
+		src/JackClient.cpp "+ 
+		MZDYN)
 		
-env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC',
-		  LIBPATH = LibPaths,
-		  CPPPATH = IncludePaths,
-		  LIBS = Libs,
-		  SHLIBPREFIX = "")
-
-Default(env.SharedLibrary(source = Source, target = Target))
-InstallEnv.Install(Install, Target)
+env.SharedLibrary(source = Source, 
+				  target = Target,
+				  LIBS = Libs,
+				  SHLIBPREFIX = "")
+						  
+env.Install(Install, Target)

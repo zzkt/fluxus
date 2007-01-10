@@ -19,9 +19,8 @@
 ; fluxus application works without having to worry about setup
 
 ; setup where to find the library module collections
-; dunno why we have to do this as it is/should be standard???
 (current-library-collection-paths 
-	(path-list-string->path-list "/usr/local/lib/plt/collects" 
+	(path-list-string->path-list fluxus-collects-location 
 	(current-library-collection-paths)))
 
 ; the path to load extensions from
