@@ -328,6 +328,7 @@ int run(Scheme_Env* se, int argc, char *argv[])
   window.setWindowTitle(windowtitle);
 
   QHBoxLayout * layout = new QHBoxLayout;
+  layout->setContentsMargins(0, 0, 0, 0);
   
   QGLFormat fmt(QGL::DoubleBuffer | QGL::DepthBuffer | QGL::Rgba | QGL::StencilBuffer);
 #ifdef ACCUM_BUFFER
