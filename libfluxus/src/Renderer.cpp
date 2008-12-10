@@ -22,6 +22,7 @@
 #include "PrimitiveIO.h"
 #include "ShaderCache.h"
 #include "Trace.h"
+#include "fixme.h"
 #include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -584,8 +585,14 @@ void Renderer::DrawText(const string &Text)
 	glRasterPos3f(0.0, 0.0, -1.1);
 	for (unsigned int n=0; n<Text.length(); n++)
 	{
+#if defined(FLX_GLUT_END)
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, Text.c_str()[n]);
 		glTranslatef(1.0f,0.0f,0.0f);
+#elif defined(FLX_QT_END)
+        FIXME("implement text with Qt");
+#else
+#error Unknown backend
+#endif
 	}
 	glPopMatrix();
 	glEnable(GL_LIGHTING);

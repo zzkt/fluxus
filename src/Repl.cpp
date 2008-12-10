@@ -15,12 +15,10 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #include <iostream>
-#ifndef __APPLE__
-#include <GL/glut.h>
-#else
-#include <GLUT/glut.h>
-#endif
+
 #include "Repl.h"
+#include "fixme.h"
+#include "keys.h"
 
 using namespace fluxus;
 
@@ -81,44 +79,41 @@ void Repl::Print(Scheme_Object *obj)
 void Repl::Handle(int button, int key, int special, int state, 
 		  int x, int y, int mod)
 {
-	if (key!=0) {
-		if ((m_Position <= m_PromptPos && key == GLEDITOR_BACKSPACE) ||
-			(m_Position < m_PromptPos && key == GLEDITOR_DELETE) ||
-			((m_Position < m_PromptPos ||
-			m_HighlightStart < m_PromptPos ||
-			m_HighlightEnd < m_PromptPos)
-			&& key == GLEDITOR_CUT))
-			return;
+    if ((m_Position <= m_PromptPos && key == GLEDITOR_BACKSPACE) ||
+        (m_Position < m_PromptPos && key == GLEDITOR_DELETE) ||
+        ((m_Position < m_PromptPos ||
+          m_HighlightStart < m_PromptPos ||
+          m_HighlightEnd < m_PromptPos)
+         && (key == GLEDITOR_CUT && mod&GLEDITOR_CTRL_MOD)))
+        return;
 
-		if (m_Position < m_PromptPos && key != GLEDITOR_COPY) 
-			m_Position = m_Text.length();
-	}
+    if (m_Position < m_PromptPos && 
+        !(key == GLEDITOR_COPY && mod&GLEDITOR_CTRL_MOD))
+        m_Position = m_Text.length();
 
-	if (special != 0) {
-		if (m_Position >= m_PromptPos) {
-			switch(special)
-			{
-			case GLUT_KEY_UP:
-    			HistoryPrev();
-    			return;
-			case GLUT_KEY_DOWN:
-    			HistoryNext();
-    			return;
-			case GLUT_KEY_END:
-    			m_Position = m_Text.length();
-    			return;
-			case GLUT_KEY_HOME:
-    			m_Position = m_PromptPos;
-    			return;
-			}
-		}
-	}
-		
-	EnsureCursorVisible();
+    if (m_Position >= m_PromptPos) {
+        switch(special)
+        {
+        case GLEDITOR_UP:
+            HistoryPrev();
+            return;
+        case GLEDITOR_DOWN:
+            HistoryNext();
+            return;
+        case GLEDITOR_END:
+            m_Position = m_Text.length();
+            return;
+        case GLEDITOR_HOME:
+            m_Position = m_PromptPos;
+            return;
+        }
+    }
 
-	if (key == GLEDITOR_RETURN)
-	{
-		m_Position = m_Text.length();
+    EnsureCursorVisible();
+
+    if (key == GLEDITOR_RETURN)
+    {
+        m_Position = m_Text.length();
         if (!TryEval()) return;
     }
 

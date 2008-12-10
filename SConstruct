@@ -41,21 +41,22 @@ LibPaths     = [
         PLTLib,
         PLTLib+"/..",
         "/usr/lib",
-        "../../libfluxus"]
+        "#/libfluxus"]
 
 IncludePaths = [
+        PLTInclude,
         "/usr/local/include",
         "/usr/include",
         "/usr/local/include/freetype2",  # arg - freetype needs to be
         "/usr/include/freetype2",        # on the include path :(
-        PLTInclude,
-        "../../libfluxus/src"]
+        "#/libfluxus/src"]
 
 ################################################################################
 # Make the "one" environment for building and installing
 
-env = Environment(CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC',
-                  VERSION_NUM = FluxusVersion)
+env = Environment( 
+        CCFLAGS = '-ggdb -pipe -Wall -O3 -ffast-math -Wno-unused -fPIC',
+        VERSION_NUM = FluxusVersion)
 
 if env['PLATFORM'] == 'darwin':
         IncludePaths += ['/opt/local/include',
@@ -92,6 +93,21 @@ if ARGUMENTS.get("3M","1")=="1":
         MZDYN = PLTLib + "/mzdyn3m.o"
 
 ################################################################################
+# Backend
+Backend = ARGUMENTS.get("END", "glut")
+if Backend == 'glut':
+    env.Append(CPPDEFINES = ["FLX_GLUT_END"])
+elif Backend == "qt":
+    env.Tool('qt4', toolpath='#')
+    env.EnableQt4Modules(['QtCore', 'QtGui', 'QtOpenGL'])
+
+    env.Append(CPPDEFINES = ["FLX_QT_END"])
+else:
+    print "ERROR: Unknown backend:", Backend
+    print "Only glut and qt are supported"
+    exit(1)
+
+################################################################################
 # Figure out which libraries we are going to need
 
 # First member of each list is a library, second - a header or headers list
@@ -100,7 +116,7 @@ if ARGUMENTS.get("3M","1")=="1":
 LibList = [["m", "math.h"],
                 ["pthread", "pthread.h"],
                 ["dl", "stdio.h"],
-                ["mzscheme3m", PLTInclude + "/scheme.h"],
+                ["mzscheme3m", "scheme.h"],
                 ["jpeg", ["stdio.h", "stdlib.h", "jpeglib.h"]],
                 ["tiff", "tiff.h"],
                 ["freetype", "ft2build.h"],
@@ -117,9 +133,11 @@ if env['PLATFORM'] == 'posix':
         env.Prepend(LINKFLAGS = ["-rdynamic"])
         LibList += [["X11", "X11/Xlib.h"],
                     ["GL", "GL/gl.h"],
-                    ["GLU", "GL/glu.h"],
-                ["glut", "GL/glut.h"],
-                ["GLEW", "GL/glew.h"]]
+                    ["GLU", "GL/glu.h"]]
+        if Backend == 'glut':
+            LibList += [["glut", "GL/glut.h"]]
+
+        LibList += [["GLEW", "GL/glew.h"]]
         env.Append(LIBPATH = ["/usr/X11R6/lib"])
 
         # add the X11 libs on - needed if we are not building on xorg
@@ -131,8 +149,12 @@ if env['PLATFORM'] == 'posix':
                                  ["SM", "X11/Xlib.h"],
                                  ["ICE", "X11/Xlib.h"]] + LibList;
 elif env['PLATFORM'] == 'darwin':
+    if Backend == 'glut':
         env.Append(FRAMEWORKS = ['GLUT', 'OpenGL', 'CoreAudio' ,'PLT_MzScheme'],
                 FRAMEWORKPATH = [PLTLib])
+    else:
+        print "TODO: Qt backend on osx"
+        exit(1)
 
 ################################################################################
 # Make sure we have these libraries availible
@@ -166,8 +188,6 @@ if not GetOption('clean'):
             env.Append(CCFLAGS=' -DNO_LO_ARG_SIZE_DECL')
 
         env = conf.Finish()
-        # ... but we shouldn't forget to add them to LIBS manually
-        env.Replace(LIBS = [rec[0] for rec in LibList])
 
 ################################################################################
 # Build the fluxus application
@@ -176,16 +196,20 @@ Install = BinInstall
 # need to build the bytecode for the base scheme library
 # this is the wrong place to do this
 if not GetOption('clean'):
-        os.system("mzc --c-mods src/base.c ++lib scheme/base")
+        os.system(PLTPrefix + "/bin/"  "mzc --c-mods src/base.c ++lib scheme/base")
 
-Source = ["src/GLEditor.cpp",
-                "src/GLFileDialog.cpp",
-                "src/Interpreter.cpp",
-                "src/Repl.cpp",
-                "src/Recorder.cpp",
-                "src/FluxusMain.cpp",
-                "src/PolyGlyph.cpp",
-                "src/main.cpp"]
+Source = [
+        "src/GLEditor.cpp",
+        "src/Interpreter.cpp",
+        "src/Repl.cpp",
+        "src/Recorder.cpp",
+        "src/FluxusMain.cpp",
+        "src/PolyGlyph.cpp",
+        "src/main.cpp",
+        "src/GLFileDialog.cpp"]
+
+if Backend == 'qt':
+    Source += ["src/QFluxusWidget.cpp"]
 
 env.Program(source = Source, target = Target)
 
@@ -194,7 +218,13 @@ env.Program(source = Source, target = Target)
 # call the core library builder and the scheme modules
 
 SConscript(dirs = Split("libfluxus modules fluxa"),
-           exports = ["env", "CollectsInstall", "DataInstall", "MZDYN", "BinInstall"])
+           exports = [
+               "env", 
+               "CollectsInstall", 
+               "DataInstall", 
+               "MZDYN", 
+               "BinInstall", 
+               "Backend"])
 
 ################################################################################
 # packaging / installing

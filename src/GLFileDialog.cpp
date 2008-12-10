@@ -14,16 +14,13 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#ifndef __APPLE__
-#include <GL/glut.h>
-#else
-#include <GLUT/glut.h>
-#endif
 #include <iostream>
 #include <glob.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+
 #include "GLFileDialog.h"
+#include "keys.h"
 
 using namespace fluxus;
 
@@ -253,116 +250,96 @@ void GLFileDialog::RenderLoad()
 
 void GLFileDialog::HandleSaveAs(int button, int key, int special, int state, int x, int y, int mod)
 {
-	if (special!=-1)
-	{
-		switch(special)
-		{
-			case GLUT_KEY_RIGHT: 
-			{
-				if (!m_Text.empty()) m_Position++;
-				if (m_Position>m_Text.size()) m_Position=m_Text.size();
-			}
-			break;
-			case GLUT_KEY_LEFT: 
-			{
-				if (m_Position>0) m_Position--;  
-			}
-			break;
-		}
-	}	
-	else
-	{
-		switch (key)
-		{
-			case GLEDITOR_RETURN:
-			{
-				m_Output=m_Path+m_Text;
-			}
-			break;
-			case GLEDITOR_DELETE: m_Text.erase(m_Position,1); break; // delete
-			case GLEDITOR_BACKSPACE: // backspace
-			{
-				if (!m_Text.empty() && m_Position!=0)
-				{
-					if (m_Selection)
-					{
-						m_Text.erase(m_HighlightStart,m_HighlightEnd-m_HighlightStart); 
-						m_Position-=m_HighlightEnd-m_HighlightStart;						
-						m_Selection=false;
-					}
-					else
-					{
-						m_Text.erase(m_Position-1,1); 
-						m_Position--; 
-					}
-				}
-			}
-			break;
-			default:
-			{
-				if (key!=-1 && !(mod&GLUT_ACTIVE_CTRL))
-				{
-					char temp[2];
-					temp[0]=(char)key;
-					temp[1]='\0';
-					m_Text.insert(m_Position,string(temp));
-					m_Position++;
-				}
-			}
-			break;
-		}
-	}	
+    switch(special)
+    {
+    case GLEDITOR_RIGHT: 
+        if (!m_Text.empty()) m_Position++;
+        if (m_Position>m_Text.size()) m_Position=m_Text.size();
+        break;
+    case GLEDITOR_LEFT: 
+        if (m_Position>0) m_Position--;  
+        break;
+    default:
+        switch (key)
+        {
+        case GLEDITOR_RETURN:
+            m_Output=m_Path+m_Text;
+            break;
+        case GLEDITOR_DELETE: 
+            m_Text.erase(m_Position,1); break; // delete
+        case GLEDITOR_BACKSPACE: // backspace
+            {
+                if (!m_Text.empty() && m_Position!=0)
+                {
+                    if (m_Selection)
+                    {
+                        m_Text.erase(m_HighlightStart,m_HighlightEnd-m_HighlightStart); 
+                        m_Position-=m_HighlightEnd-m_HighlightStart;						
+                        m_Selection=false;
+                    }
+                    else
+                    {
+                        m_Text.erase(m_Position-1,1); 
+                        m_Position--; 
+                    }
+                }
+            }
+            break;
+        default:
+            if (key!=-1 && !(mod&GLEDITOR_CTRL_MOD))
+            {
+                char temp[2];
+                temp[0]=(char)key;
+                temp[1]='\0';
+                m_Text.insert(m_Position,string(temp));
+                m_Position++;
+            }
+            break;
+        }
+    }
 }
 
 void GLFileDialog::HandleLoad(int button, int key, int special, int state, int x, int y, int mod)
 {
-	if (special!=-1)
-	{
-		switch(special)
-		{
-			case GLUT_KEY_END: m_CurrentFile=m_Filenames.size(); break;
-			case GLUT_KEY_HOME: m_CurrentFile=0; break;
-			case GLUT_KEY_UP: 
-			{
-				if (m_CurrentFile==0) m_CurrentFile=m_Filenames.size();
-				else m_CurrentFile--;			
-			}
-			break;
-			case GLUT_KEY_DOWN: 
-			{
-				m_CurrentFile++;
-				if (m_CurrentFile>=m_Filenames.size()) m_CurrentFile=0;
-			}
-			break;
-			case GLUT_KEY_PAGE_UP: m_CurrentFile-=10; break;
-			case GLUT_KEY_PAGE_DOWN: m_CurrentFile+=10; break;
-		}
-	}	
-	else
-	{
-		switch (key)
-		{
-			case GLEDITOR_RETURN:
-			{
-				if(m_Directories.find(m_CurrentFile)!=m_Directories.end())
-				{
-					m_Path+=m_Filenames[m_CurrentFile];
-					m_Path+="/";
-					ReadPath();
-				}
-				else
-				{
-					m_Output=m_Path+m_Filenames[m_CurrentFile];
-				}
-			}
-			break;
-		}
-		
-	}	
-	
-	if (m_CurrentFile>=m_Filenames.size())
-	{
-		m_CurrentFile=m_Filenames.size()-1;
-	}
+    switch(special)
+    {
+    case GLEDITOR_END: 
+        m_CurrentFile=m_Filenames.size(); break;
+    case GLEDITOR_HOME: 
+        m_CurrentFile=0; break;
+    case GLEDITOR_UP: 
+        if (m_CurrentFile==0) m_CurrentFile=m_Filenames.size();
+        else m_CurrentFile--;			
+        break;
+    case GLEDITOR_DOWN: 
+        m_CurrentFile++;
+        if (m_CurrentFile>=m_Filenames.size()) m_CurrentFile=0;
+        break;
+    case GLEDITOR_PAGE_UP: 
+        m_CurrentFile-=10; break;
+    case GLEDITOR_PAGE_DOWN: 
+        m_CurrentFile+=10; break;
+    default:
+        switch (key)
+        {
+        case GLEDITOR_RETURN:
+            if(m_Directories.find(m_CurrentFile)!=m_Directories.end())
+            {
+                m_Path+=m_Filenames[m_CurrentFile];
+                m_Path+="/";
+                ReadPath();
+            }
+            else
+            {
+                m_Output=m_Path+m_Filenames[m_CurrentFile];
+            }
+            break;
+        }
+    }
+
+    if (m_CurrentFile>=m_Filenames.size())
+    {
+        m_CurrentFile=m_Filenames.size()-1;
+    }
 }
 

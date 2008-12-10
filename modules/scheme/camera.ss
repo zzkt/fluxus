@@ -85,9 +85,8 @@
       (else
        (vector mx my (sqrt (- 1 mag)))))))
 
-
 (define (input-camera key button special state x y mod width height)
-  (when (and (number? key) (zero? key) (eq? special -1)) ; = mouse event
+  (when (and (number? key) (eq? key -1) (eq? special -1)) ; = mouse event
     (cond 
       ((zero? state) ; click                      
        (vector-set! last-mouse 0 x)

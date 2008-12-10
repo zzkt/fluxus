@@ -14,16 +14,16 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-#include "FluxusMain.h"
-#ifndef __APPLE__
-#include <GL/glut.h>
-#else
-#include <GLUT/glut.h>
-#endif
 #include <iostream>
+
+#include "FluxusMain.h"
+#include "keys.h"
 
 using namespace std;
 using namespace fluxus;
+
+// from main.cpp
+void toggleFullScreen();
 
 ////////////////////////////////////////////////////////////////
 // despite attempts at clearing all this up, this 
@@ -34,8 +34,11 @@ m_CurrentEditor(9),
 m_Width(x),
 m_Height(y),
 m_HideScript(false),
-m_ShowCursor(true),
+m_ShowCursor(true), 
 m_ShowFileDialog(false)
+#ifdef FLX_QT_END
+, m_mainWin(NULL)
+#endif
 {
 	// use the interpreter to get the font name
 	// and editor prefs
@@ -98,112 +101,121 @@ FluxusMain::~FluxusMain()
 	}
 }
 
-void FluxusMain::Handle(unsigned char key, int button, int special, int state, int x, int y, int mod) 
+void FluxusMain::Handle(int key, int button, int special, int state, int x, int y, int mod) 
 {	
-	if (mod&GLUT_ACTIVE_CTRL)
+	if (mod&GLEDITOR_CTRL_MOD)
 	{
 		// pretty sure this is going to have to change...
 		switch(key)
 		{
-			case 6: glutFullScreen(); break; // f	
-			case 23: // w
-			{
+			case GLEDITOR_CTRL_F: 
+#ifdef FLX_GLUT_END
+                glutFullScreen(); 
+                break;
+#endif
+                // on Qt fallthrough, to fullscreen/windowed state toggle
+			case GLEDITOR_CTRL_W: 
+#ifdef FLX_GLUT_END
 				glutReshapeWindow(720,576);
 				glutPositionWindow(100,100);
-			} 
-			break;
-			case 16: Pretty(); break; // p
-			case 19: if (m_CurrentEditor!=9) SaveScript(); break; // s			
-			case 8: HideScript(); break; // h
-			case 13: HideCursor(); break; // m
-			case 12: 
-				if (m_CurrentEditor!=9) // don't go into the dialogs from the repl
-				{
-					m_FileDialog->SetSaveAsMode(false);
-					m_ShowFileDialog=!m_ShowFileDialog;
-				} 
-			break; // l
-			case 4: // d
-				if (m_CurrentEditor!=9) // don't go into the dialogs from the repl
-				{
-					m_FileDialog->SetSaveAsMode(true);
-					m_ShowFileDialog=!m_ShowFileDialog; 
-				}
-			break; // l
-			case 5: // e
-			{
-				Execute();
-			}			
-			break;
-#ifndef __APPLE__
-			case 49: SetCurrentEditor(0); break; // 1
-			case 0: SetCurrentEditor(1); break; // 2
-			case 27: SetCurrentEditor(2); break; // 3
-			case 28: SetCurrentEditor(3); break; // 4
-			case 29: SetCurrentEditor(4); break; // 5
-			case 30: SetCurrentEditor(5); break; // 6
-			case 31: SetCurrentEditor(6); break; // 7
-			case 127: SetCurrentEditor(7); break; // 8
-			case 57: SetCurrentEditor(8); break; // 9
-			case 48: SetCurrentEditor(9); break; // 0
-#else
-			case 49: SetCurrentEditor(0); break; // 1
-			case 50: SetCurrentEditor(1); break; // 2
-			case 51: SetCurrentEditor(2); break; // 3
-			case 52: SetCurrentEditor(3); break; // 4
-			case 53: SetCurrentEditor(4); break; // 5
-			case 54: SetCurrentEditor(5); break; // 6
-			case 55: SetCurrentEditor(6); break; // 7
-			case 56: SetCurrentEditor(7); break; // 8
-			case 57: SetCurrentEditor(8); break; // 9
-			case 48: SetCurrentEditor(9); break; // 0
+#elif defined(FLX_QT_END)
+                toggleFullScreen();
 #endif
+                break;
+            case GLEDITOR_CTRL_P: 
+                Pretty(); 
+                break; 
+            case GLEDITOR_CTRL_S: 
+                if (m_CurrentEditor!=9) 
+                    SaveScript(); 
+                break;
+            case GLEDITOR_CTRL_H: 
+                HideScript(); 
+                break;
+            case GLEDITOR_CTRL_M: 
+                ToggleCursor(); 
+                break;
+            case GLEDITOR_CTRL_L: 
+                if (m_CurrentEditor!=9) // don't go into the dialogs from the repl
+                {
+                    m_FileDialog->SetSaveAsMode(false);
+                    m_ShowFileDialog=!m_ShowFileDialog;
+                } 
+                break; 
+            case GLEDITOR_CTRL_D: 
+                if (m_CurrentEditor!=9) // don't go into the dialogs from the repl
+                {
+                    m_FileDialog->SetSaveAsMode(true);
+                    m_ShowFileDialog=!m_ShowFileDialog; 
+                }
+                break; 
+            case GLEDITOR_CTRL_E:
+                {
+                    Execute();
+                }			
+			break;
+
+			case GLEDITOR_CTRL_1: SetCurrentEditor(0); break; 
+			case GLEDITOR_CTRL_2: SetCurrentEditor(1); break; 
+			case GLEDITOR_CTRL_3: SetCurrentEditor(2); break; 
+			case GLEDITOR_CTRL_4: SetCurrentEditor(3); break; 
+			case GLEDITOR_CTRL_5: SetCurrentEditor(4); break; 
+			case GLEDITOR_CTRL_6: SetCurrentEditor(5); break; 
+			case GLEDITOR_CTRL_7: SetCurrentEditor(6); break; 
+			case GLEDITOR_CTRL_8: SetCurrentEditor(7); break; 
+			case GLEDITOR_CTRL_9: SetCurrentEditor(8); break; 
+			case GLEDITOR_CTRL_0: SetCurrentEditor(9); break; 
 		}
 	}
 	
-	if (key!=0 || special!=-1) 
+	if (key!=-1 || special!=-1) 
 	{
-		if (special==GLUT_KEY_F9) 
-		{
+                switch (special) {
+                case GLEDITOR_F9:
 			m_Editor[m_CurrentEditor]->m_TextColourRed=rand()%1000/1000.0f;
 			m_Editor[m_CurrentEditor]->m_TextColourBlue=rand()%1000/1000.0f;
 			m_Editor[m_CurrentEditor]->m_TextColourGreen=rand()%1000/1000.0f;
-		}	
-		else if (special==GLUT_KEY_F10) 
-		{
+                        break;
+                case GLEDITOR_F10:
 			m_Editor[m_CurrentEditor]->m_TextColourAlpha-=0.05;
 			if (m_Editor[m_CurrentEditor]->m_TextColourAlpha<0)
 			{
 				m_Editor[m_CurrentEditor]->m_TextColourAlpha=0;
 			}
-		}	
-		else if (special==GLUT_KEY_F11) 
-		{
+		        break;
+                case GLEDITOR_F11:
 			m_Editor[m_CurrentEditor]->m_TextColourAlpha+=0.05;
 			if (m_Editor[m_CurrentEditor]->m_TextColourAlpha>1)
 			{
 				m_Editor[m_CurrentEditor]->m_TextColourAlpha=1;
 			}
-		}
-		else if (special==GLUT_KEY_F4 && m_CurrentEditor<9) 
-		{
-			m_Script=m_Editor[m_CurrentEditor]->GetSExpr();				
-		}
-		else if (special==GLUT_KEY_F5 && m_CurrentEditor<9) 
-		{
-			Execute();
-		}
-		else if (special==GLUT_KEY_F6 && m_CurrentEditor<9) 
-		{
-			Interpreter::Initialise();
-			m_Script=m_Editor[m_CurrentEditor]->GetText();
-			SaveBackupScript();
-		}
+		        break;
+                case GLEDITOR_F4:
+                        if (m_CurrentEditor<9) 
+                        {
+                                m_Script=m_Editor[m_CurrentEditor]->GetSExpr();				
+                        }
+                        break;
+                case GLEDITOR_F5:
+                        if (m_CurrentEditor<9) 
+                        {
+                                Execute();
+                        }
+                        break;
+                case GLEDITOR_F6:
+		        if (m_CurrentEditor<9) 
+                        {
+                                Interpreter::Initialise();
+                                m_Script=m_Editor[m_CurrentEditor]->GetText();
+                                SaveBackupScript();
+                        }
+                        break;
+                }
 	
 		// the editors only take keyboard events
 		if (m_ShowFileDialog) 
 		{
-			if (key==27) // escape 
+			if (key==GLEDITOR_ESCAPE)
 			{
 				m_ShowFileDialog=false;
 			}
@@ -245,8 +257,9 @@ void FluxusMain::Reshape(int width, int height)
 
 void FluxusMain::Render()
 {		
-	if (m_ShowFileDialog) m_FileDialog->Render();
-	else if (!m_HideScript) m_Editor[m_CurrentEditor]->Render();
+        if (m_ShowFileDialog) m_FileDialog->Render();
+        else 
+                if (!m_HideScript) m_Editor[m_CurrentEditor]->Render();
 }
 
 void FluxusMain::LoadScript(const string &Filename) 
@@ -368,9 +381,15 @@ void FluxusMain::Pretty()
   	MZ_GC_UNREG();
 }
 
-void FluxusMain::HideCursor() 
+void FluxusMain::ToggleCursor() 
 {
 	m_ShowCursor=!m_ShowCursor; 
-	if (m_ShowCursor) glutSetCursor(GLUT_CURSOR_INHERIT); 
-	else glutSetCursor(GLUT_CURSOR_NONE); 
+
+#if defined(FLX_GLUT_END)
+    glutSetCursor(m_ShowCursor ? GLUT_CURSOR_INHERIT : GLUT_CURSOR_NONE);
+#elif defined(FLX_QT_END)
+    mainWin()->setCursor(m_ShowCursor ? Qt::ArrowCursor : Qt::BlankCursor);
+#else
+#error Unknown backend
+#endif
 }

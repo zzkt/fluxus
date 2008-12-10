@@ -4,17 +4,19 @@
 # This is the main PLT module for fluxus, containing all core
 # graphics functions
 
-Import("env", "BinaryModulesLocation", "MZDYN")
+Import("env", "BinaryModulesLocation", "MZDYN", "Backend")
 
 if env['PLATFORM'] == 'darwin':
-	    Target = "fluxus-engine_ss.dylib"
+    Target = "fluxus-engine_ss.dylib"
 else:
-		Target = "fluxus-engine_ss.so"
+    Target = "fluxus-engine_ss.so"
 
 Install = BinaryModulesLocation
 Libs = Split("GLEW fluxus png ode tiff jpeg")
 if env['PLATFORM'] != 'darwin':
-	    Libs += Split("GL GLU glut")
+    Libs += Split("GL GLU")
+    if Backend == 'glut':
+        Libs += ["glut"]
 
 Source = Split("src/Engine.cpp \
 		src/FluxusEngine.cpp \

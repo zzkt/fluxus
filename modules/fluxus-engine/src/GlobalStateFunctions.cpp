@@ -19,6 +19,10 @@
 #include "Engine.h"
 #include "GlobalStateFunctions.h"
 #include "Renderer.h"
+#include "fixme.h"
+
+// from main.cpp
+void resize(int w, int h);
 
 using namespace GlobalStateFunctions;
 using namespace SchemeHelper;
@@ -1101,8 +1105,7 @@ Scheme_Object *set_screen_size(int argc, Scheme_Object **argv)
 	if (SCHEME_VEC_SIZE(argv[0])!=2) scheme_wrong_type("set-screen-size", "vector size 2", 0, argc, argv);
 	float v[2];
 	FloatsFromScheme(argv[0],v,2);
-	// hmmm, seems a bit wrong, but hey...
-	glutReshapeWindow((int)v[0],(int)v[1]);
+    resize((int)v[0],(int)v[1]);
  	MZ_GC_UNREG(); 
 	return scheme_void;
 }

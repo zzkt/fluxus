@@ -20,22 +20,6 @@
 #include <string>
 #include "PolyGlyph.h"
 
-#ifndef __APPLE__
-#define GLEDITOR_DELETE 127
-#define GLEDITOR_BACKSPACE 8
-#else
-#define GLEDITOR_DELETE 8
-#define GLEDITOR_BACKSPACE 127
-#endif
-
-#define GLEDITOR_TAB 9
-#define GLEDITOR_RETURN 13
-#define GLEDITOR_CUT 24 
-#define GLEDITOR_COPY 3 
-#define GLEDITOR_PASTE 22 
-#define GLEDITOR_PLUS 61 
-#define GLEDITOR_MINUS 45 
-
 using namespace std;
 
 namespace fluxus 

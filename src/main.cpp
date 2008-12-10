@@ -22,15 +22,22 @@
 #include <iostream>
 #include <string>
 
-#ifndef __APPLE__
-#include "GL/glut.h"
-#else
-#include "GLUT/glut.h"
-#endif
+#ifdef FLX_QT_END
+#include <QApplication>
+#include <QWidget>
+#include <QHBoxLayout>
+#include <QtOpenGL>
+#include <QKeyEvent>
+
+#include "QFluxusWidget.h"
+#endif // FLX_QT_END
+
 
 #include "FluxusMain.h"
 #include "Interpreter.h"
 #include "Recorder.h"
+#include "fixme.h"
+#include "keys.h"
 
 using namespace std;
 
@@ -50,6 +57,26 @@ void ReshapeCallback(int width, int height)
   snprintf(code,256,"(%s %d %d)",RESHAPE_CALLBACK.c_str(),width,height);
   Interpreter::Interpret(code);
 }
+
+void MouseCallback(int button, int state, int x, int y)
+{
+  app->Handle(-1, button, -1, state, x, y, 0);
+  char code[256];
+  snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),-1,button,-1,state,x,y,0);
+  Interpreter::Interpret(code);
+  recorder->Record(RecorderMessage("mouse",x,y,button,state));
+}
+
+void MotionCallback(int x, int y)
+{
+  app->Handle(-1, -1, -1, -1, x, y, 0);
+  char code[256];
+  snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),-1,-1,-1,-1,x,y,0);
+  Interpreter::Interpret(code);
+  recorder->Record(RecorderMessage("motion",x,y));
+}
+
+#if defined(FLX_GLUT_END)
 
 void KeyboardCallback(unsigned char key,int x, int y)
 {
@@ -78,47 +105,128 @@ void SpecialKeyboardCallback(int key,int x, int y)
 {
   int mod=modifiers;
   if (recorder->GetMode()!=EventRecorder::PLAYBACK) mod=glutGetModifiers();
-  app->Handle(0, -1, key, -1, x, y, mod);
+  app->Handle(-1, -1, key, -1, x, y, mod);
   char code[256];
-  snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),0,-1,key,-1,x,y,mod);
+  snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),-1,-1,key,-1,x,y,mod);
   Interpreter::Interpret(code);
   recorder->Record(RecorderMessage("specialkeydown",key,mod));
 }
 
 void SpecialKeyboardUpCallback(int key,int x, int y)
 {
-  //app->Handle( 0, 0, key, 1, x, y);
+  //app->Handle( -1, -1, key, 1, x, y);
   char code[256];
-  snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_RELEASE_CALLBACK.c_str(),0,-1,key,-1,x,y,0);
+  snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_RELEASE_CALLBACK.c_str(),-1,-1,key,-1,x,y,0);
   Interpreter::Interpret(code);
   recorder->Record(RecorderMessage("specialkeyup",key,0));
-}
-
-void MouseCallback(int button, int state, int x, int y)
-{
-  app->Handle(0, button, -1, state, x, y, 0);
-  char code[256];
-  snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),0,button,-1,state,x,y,0);
-  Interpreter::Interpret(code);
-  recorder->Record(RecorderMessage("mouse",x,y,button,state));
-}
-
-void MotionCallback(int x, int y)
-{
-  app->Handle(0, -1, -1, -1, x, y, 0);
-  char code[256];
-  snprintf(code,256,"(%s %d %d %d %d %d %d %d)",INPUT_CALLBACK.c_str(),0,-1,-1,-1,x,y,0);
-  Interpreter::Interpret(code);
-  recorder->Record(RecorderMessage("motion",x,y));
 }
 
 void IdleCallback()
 {
   glutPostRedisplay();
 }
+#elif defined(FLX_QT_END)
+
+void QFluxusWidget::keyPressEvent(QKeyEvent * ev)
+{
+    FIXME("Implement record/playback in Qt");
+    int mod=modifiers;
+    if (recorder->GetMode()!=EventRecorder::PLAYBACK) 
+        mod=ev->modifiers();
+
+    int key = ev->key();
+    if (key>=Qt::Key_A && key<=Qt::Key_Z && !(mod&GLEDITOR_CTRL_MOD)) {
+        key = (int)ev->text()[0].toAscii();
+    }
+
+    FIXME("Implement x,y in key handler in Qt");
+    app->Handle(key, -1, key, -1, 
+                // x, y,
+                -1, -1, 
+                mod);
+    char code[256];
+    snprintf(code,256,"(%s %d %d %d %d %d %d %d)",
+             INPUT_CALLBACK.c_str(),
+             key, -1, key, -1,
+             // x, y,
+             -1,-1,
+             mod);
+    Interpreter::Interpret(code);
+    recorder->Record(RecorderMessage("keydown",key,mod));
+}
+
+void QFluxusWidget::keyReleaseEvent(QKeyEvent * ev)
+{
+    FIXME("Implement x,y in key up handler in Qt");
+
+    int mod=modifiers;
+    if (recorder->GetMode()!=EventRecorder::PLAYBACK) 
+        mod=ev->modifiers();
+
+    int key = ev->key();
+    if (key>=Qt::Key_A && key<=Qt::Key_Z && !(mod&GLEDITOR_CTRL_MOD)) {
+        key = (int)ev->text()[0].toAscii();
+    }
+
+    char code[256];
+    snprintf(code,256,"(%s %d %d %d %d %d %d %d)",
+             INPUT_RELEASE_CALLBACK.c_str(),
+             key, -1, key, -1,
+             // x, y,
+             -1,-1,
+             0);
+    Interpreter::Interpret(code);
+    recorder->Record(RecorderMessage("keyup",ev->key(),0));
+}
+
+void QFluxusWidget::mouseMoveEvent(QMouseEvent * ev)
+{
+    MotionCallback(ev->x(), ev->y());
+}
+
+inline int glutifyButton(Qt::MouseButton button)
+{
+    int but = -1;
+
+    switch(button) {
+    case Qt::LeftButton: but = 0; break;
+    case Qt::MidButton: but = 1; break;
+    case Qt::RightButton: but = 2; break;
+    default: break;
+    }
+    return but;
+}
+
+void QFluxusWidget::mousePressEvent(QMouseEvent * ev)
+{
+
+    MouseCallback(glutifyButton(ev->button()), 0, ev->x(), ev->y());
+}
+
+void QFluxusWidget::mouseReleaseEvent(QMouseEvent * ev)
+{
+    MouseCallback(glutifyButton(ev->button()), 1, ev->x(), ev->y());
+}
+
+void toggleFullScreen()
+{
+    QWidget * w = app->mainWin();
+    w->setWindowState(w->windowState() ^ Qt::WindowFullScreen);
+}
+#endif
+
+void resize(int w, int h)
+{
+#ifdef FLX_QT_END
+    app->mainWin()->resize(w,h);
+#elif defined(FLX_GLUT_END)
+	glutReshapeWindow(w,h);
+#endif
+}
 
 void DoRecorder()
 {
+#if defined(FLX_GLUT_END)
   list<RecorderMessage> events;
   if (recorder->Get(events))
     {
@@ -141,6 +249,9 @@ void DoRecorder()
 	}
     }
   recorder->UpdateClock();
+#else
+  FIXME("Implement recorder in Qt");
+#endif
 }
 
 void DisplayCallback()
@@ -158,9 +269,17 @@ void DisplayCallback()
     }
 
   app->Render();
+  
+#if defined(FLX_GLUT_END)
   glutSwapBuffers();
-
   DoRecorder();
+#elif !defined(FLX_QT_END)
+  // We don't have to swap buffers in Qt, because Qt will do that for us at apropriate moment
+  // Which means that this is a wrong place to DoRecorder()
+  // FIXME find the right place then...
+#error Unknown backend
+#endif
+
 }
 
 void ExitHandler()
@@ -177,6 +296,11 @@ int run(Scheme_Env* se, int argc, char *argv[])
 
   srand(time(NULL));
   
+  char windowtitle[256];
+  snprintf(windowtitle,256,"fluxus scratchpad %d.%d",FLUXUS_MAJOR_VERSION,FLUXUS_MINOR_VERSION);
+
+#ifdef FLX_GLUT_END
+
   unsigned int flags = GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH|GLUT_STENCIL;
 #ifdef ACCUM_BUFFER
   flags|=GLUT_ACCUM;
@@ -188,10 +312,7 @@ int run(Scheme_Env* se, int argc, char *argv[])
   // init OpenGL
   glutInit(&argc,argv);
   glutInitWindowSize(720,576);
-  app = new FluxusMain(720,576);
   glutInitDisplayMode(flags);
-  char windowtitle[256];
-  snprintf(windowtitle,256,"fluxus scratchpad %d.%d",FLUXUS_MAJOR_VERSION,FLUXUS_MINOR_VERSION);
   glutCreateWindow(windowtitle);
   glutDisplayFunc(DisplayCallback);
   glutReshapeFunc(ReshapeCallback);
@@ -202,6 +323,39 @@ int run(Scheme_Env* se, int argc, char *argv[])
   glutIdleFunc(IdleCallback);
   glutKeyboardUpFunc(KeyboardUpCallback);
   glutSpecialUpFunc(SpecialKeyboardUpCallback);
+
+#elif defined(FLX_QT_END)
+
+  QGLFormat fmt(QGL::DoubleBuffer | QGL::DepthBuffer | QGL::Rgba | QGL::StencilBuffer);
+#ifdef ACCUM_BUFFER
+  fmt.setAccum(true);
+#endif
+#ifdef STEREODEFAULT
+  fmt.setStereo(true);
+#endif
+
+  QGLFormat::setDefaultFormat(fmt);
+
+  QApplication qapp(argc, argv);
+  QWidget *window = new QWidget;
+  window->setWindowTitle(windowtitle);
+
+  QHBoxLayout * layout = new QHBoxLayout;
+
+  QFluxusWidget *gfxView = new QFluxusWidget;
+  gfxView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  layout->addWidget(gfxView);
+
+  window->setLayout(layout);
+
+#else
+#error Unknown backend, define one of FLX_{GLUT,QT}_END
+#endif 
+
+  app = new FluxusMain(720,576);
+#ifdef FLX_QT_END
+  app->setMainWin(window);
+#endif
   atexit(ExitHandler);
 
   recorder = new EventRecorder;
@@ -269,11 +423,15 @@ int run(Scheme_Env* se, int argc, char *argv[])
 	}
       else if (!strcmp(argv[arg],"-fs"))
 	{
+#ifdef FLX_GLUT_END
 	  glutFullScreen();
+#else
+        window->setWindowState(Qt::WindowFullScreen);
+#endif
 	}
       else if (!strcmp(argv[arg],"-hm"))
 	{
-	  app->HideCursor();
+	  app->ToggleCursor();
 	}
       else if (!strcmp(argv[arg],"-x"))
 	{
@@ -296,9 +454,22 @@ int run(Scheme_Env* se, int argc, char *argv[])
       arg++;
     }
 
+#if defined(FLX_GLUT_END)
   glutMainLoop();
-
   return 0;
+#elif defined(FLX_QT_END)
+  // update timer
+  QTimer *timer = new QTimer(gfxView);
+  timer->setInterval(50);
+  gfxView->connect(timer, SIGNAL(timeout()), gfxView, SLOT(updateGL()));
+  timer->start(); 
+  window->show();
+
+  return qapp.exec();
+#else
+#error Unknown backend
+#endif
+
 }
 
 int main(int argc, char *argv[])

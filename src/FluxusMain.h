@@ -15,9 +15,14 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #include "GLEditor.h"
-#include "GLFileDialog.h"
 #include "Repl.h"
 #include "Interpreter.h"
+#include "GLFileDialog.h"
+#include "fixme.h"
+
+#ifdef FLX_QT_END
+#include <QWidget>
+#endif
 
 using namespace fluxus;
 
@@ -35,7 +40,7 @@ public:
 	FluxusMain(int x, int y);
 	virtual ~FluxusMain();
 	
-	void Handle(unsigned char key, int button, int special, int state, int x, int y, int mod);
+	void Handle(int key, int button, int special, int state, int x, int y, int mod);
 	void Render();
 	void Reshape(int width, int height);
 		
@@ -47,13 +52,17 @@ public:
     void SaveScript();
     void SaveBackupScript();
 	void HideScript() { m_HideScript=!m_HideScript; }
-	void HideCursor();
+	void ToggleCursor();
 	void SetCurrentEditor(int s) { m_CurrentEditor=s; } 
   	void Execute();
 	
 	Repl * GetRepl() { return (Repl*)m_Editor[9]; }
     void SwitchToRepl() { m_CurrentEditor = 9; }
 	
+#ifdef FLX_QT_END
+    QWidget * mainWin() { return m_mainWin; }
+    void setMainWin(QWidget * w) { m_mainWin = w; }
+#endif
 private:
 	
 	void Pretty();
@@ -61,14 +70,18 @@ private:
 	GLEditor *m_Editor[NUM_EDITORS];
 	int m_CurrentEditor;
 	string m_SaveName[NUM_EDITORS];
-	GLFileDialog *m_FileDialog;
 	
 	int m_Width;
 	int m_Height;
 	string m_Script;
 	bool m_HideScript;
 	bool m_ShowCursor;
+
+	GLFileDialog *m_FileDialog;
 	bool m_ShowFileDialog;
+#ifdef FLX_QT_END
+    QWidget * m_mainWin;
+#endif
 };
 
 };
