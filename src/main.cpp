@@ -326,6 +326,12 @@ int run(Scheme_Env* se, int argc, char *argv[])
 
 #elif defined(FLX_QT_END)
 
+  QApplication qapp(argc, argv);
+  QWidget window;
+  window.setWindowTitle(windowtitle);
+
+  QHBoxLayout * layout = new QHBoxLayout;
+  
   QGLFormat fmt(QGL::DoubleBuffer | QGL::DepthBuffer | QGL::Rgba | QGL::StencilBuffer);
 #ifdef ACCUM_BUFFER
   fmt.setAccum(true);
@@ -333,20 +339,14 @@ int run(Scheme_Env* se, int argc, char *argv[])
 #ifdef STEREODEFAULT
   fmt.setStereo(true);
 #endif
-
   QGLFormat::setDefaultFormat(fmt);
 
-  QApplication qapp(argc, argv);
-  QWidget *window = new QWidget;
-  window->setWindowTitle(windowtitle);
-
-  QHBoxLayout * layout = new QHBoxLayout;
-
   QFluxusWidget *gfxView = new QFluxusWidget;
+
   gfxView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   layout->addWidget(gfxView);
 
-  window->setLayout(layout);
+  window.setLayout(layout);
 
 #else
 #error Unknown backend, define one of FLX_{GLUT,QT}_END
@@ -354,7 +354,7 @@ int run(Scheme_Env* se, int argc, char *argv[])
 
   app = new FluxusMain(720,576);
 #ifdef FLX_QT_END
-  app->setMainWin(window);
+  app->setMainWin(&window);
 #endif
   atexit(ExitHandler);
 
@@ -426,7 +426,7 @@ int run(Scheme_Env* se, int argc, char *argv[])
 #ifdef FLX_GLUT_END
 	  glutFullScreen();
 #else
-        window->setWindowState(Qt::WindowFullScreen);
+        window.setWindowState(Qt::WindowFullScreen);
 #endif
 	}
       else if (!strcmp(argv[arg],"-hm"))
@@ -458,13 +458,13 @@ int run(Scheme_Env* se, int argc, char *argv[])
   glutMainLoop();
   return 0;
 #elif defined(FLX_QT_END)
-  // update timer
-  QTimer *timer = new QTimer(gfxView);
-  timer->setInterval(50);
-  gfxView->connect(timer, SIGNAL(timeout()), gfxView, SLOT(updateGL()));
-  timer->start(); 
-  window->show();
 
+  // update timer
+  QTimer *timer = new QTimer();
+  QObject::connect(timer, SIGNAL(timeout()), gfxView, SLOT(updateGL()));
+  timer->start(50); 
+
+  window.show();
   return qapp.exec();
 #else
 #error Unknown backend
