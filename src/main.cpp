@@ -138,18 +138,16 @@ void QFluxusWidget::keyPressEvent(QKeyEvent * ev)
     if (key>=Qt::Key_A && key<=Qt::Key_Z && !(mod&GLEDITOR_CTRL_MOD)) {
         key = (int)ev->text()[0].toAscii();
     }
+    QPoint cur = QCursor::pos();
 
-    FIXME("Implement x,y in key handler in Qt");
     app->Handle(key, -1, key, -1, 
-                // x, y,
-                -1, -1, 
+                cur.x(), cur.y(),
                 mod);
     char code[256];
     snprintf(code,256,"(%s %d %d %d %d %d %d %d)",
              INPUT_CALLBACK.c_str(),
              key, -1, key, -1,
-             // x, y,
-             -1,-1,
+             cur.x(), cur.y(),
              mod);
     Interpreter::Interpret(code);
     recorder->Record(RecorderMessage("keydown",key,mod));
@@ -157,8 +155,6 @@ void QFluxusWidget::keyPressEvent(QKeyEvent * ev)
 
 void QFluxusWidget::keyReleaseEvent(QKeyEvent * ev)
 {
-    FIXME("Implement x,y in key up handler in Qt");
-
     int mod=modifiers;
     if (recorder->GetMode()!=EventRecorder::PLAYBACK) 
         mod=ev->modifiers();
@@ -168,12 +164,13 @@ void QFluxusWidget::keyReleaseEvent(QKeyEvent * ev)
         key = (int)ev->text()[0].toAscii();
     }
 
+    QPoint cur = QCursor::pos();
+
     char code[256];
     snprintf(code,256,"(%s %d %d %d %d %d %d %d)",
              INPUT_RELEASE_CALLBACK.c_str(),
              key, -1, key, -1,
-             // x, y,
-             -1,-1,
+             cur.x(), cur.y(),
              0);
     Interpreter::Interpret(code);
     recorder->Record(RecorderMessage("keyup",ev->key(),0));
