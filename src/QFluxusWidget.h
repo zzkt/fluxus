@@ -9,12 +9,10 @@ class QFluxusWidget : public QGLWidget
 
 public:
     QFluxusWidget(QWidget *parent = 0);
-    ~QFluxusWidget();
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
 
 protected:
-    void initializeGL();
     void resizeGL(int w, int h);
     void paintGL();
 

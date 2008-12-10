@@ -13,14 +13,6 @@ QFluxusWidget::QFluxusWidget(QWidget *parent)
         setFocusPolicy(Qt::WheelFocus); 
 }
 
-QFluxusWidget::~QFluxusWidget()
-{
-}
-
-void QFluxusWidget::initializeGL()
-{
-}
-
 void QFluxusWidget::resizeGL(int w, int h)
 {
         // call through to the callback used with glut
