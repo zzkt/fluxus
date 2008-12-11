@@ -425,6 +425,19 @@ void GLEditor::Render()
 	if (m_Delta>100.0f) m_Delta=0.000001f;
 }
 
+void GLEditor::KillSelection()
+{
+    if (m_Selection) 
+    {
+        m_Text.erase(m_HighlightStart,m_HighlightEnd-m_HighlightStart); 
+        if (m_Position>=m_HighlightEnd) 
+        {
+            m_Position-=m_HighlightEnd-m_HighlightStart;
+        }						
+        m_Selection=false;
+    }
+}
+
 void GLEditor::Handle(int button, int key, int special, int state, int x, int y, int mod)
 {	
     unsigned int startpos=m_Position;
@@ -518,6 +531,7 @@ void GLEditor::Handle(int button, int key, int special, int state, int x, int y,
             }
             break;
         case GLEDITOR_PASTE: // paste
+            KillSelection();
             m_Text.insert(m_Position,m_CopyBuffer);
             m_Selection=false;
             m_Position+=m_CopyBuffer.size();
@@ -536,20 +550,16 @@ void GLEditor::Handle(int button, int key, int special, int state, int x, int y,
         switch(key)
         {
         case GLEDITOR_DELETE: 
-            m_Text.erase(m_Position,1); 
+            if (m_Selection)
+                KillSelection();
+            else
+                m_Text.erase(m_Position,1); 
             break; // delete
         case GLEDITOR_BACKSPACE: // backspace
             if (!m_Text.empty() && m_Position!=0)
             {
                 if (m_Selection) 
-                {
-                    m_Text.erase(m_HighlightStart,m_HighlightEnd-m_HighlightStart); 
-                    if (m_Position>=m_HighlightEnd) 
-                    {
-                        m_Position-=m_HighlightEnd-m_HighlightStart;
-                    }						
-                    m_Selection=false;
-                }
+                    KillSelection();
                 else
                 {
                     m_Text.erase(m_Position-1,1); 
@@ -577,6 +587,7 @@ void GLEditor::Handle(int button, int key, int special, int state, int x, int y,
         default:
             if (key < 256) { // only type extended ascii (?)
                 char temp[2];
+                KillSelection();
                 temp[0]=(char)key;
                 temp[1]='\0';
                 m_Text.insert(m_Position,string(temp));

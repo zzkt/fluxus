@@ -90,6 +90,8 @@ protected:
 	void BBExpand(float x, float y);
 	void BBClear() { m_BBMinX=m_BBMinY=m_BBMaxX=m_BBMaxY=0; }
 	
+    void KillSelection();
+
 	string m_Text;
 	static string m_CopyBuffer;
 	unsigned int m_Position;
