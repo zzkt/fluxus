@@ -129,6 +129,10 @@ void IdleCallback()
 
 void QFluxusWidget::keyPressEvent(QKeyEvent * ev)
 {
+    // don't bother with modifiers for now
+    if (ev->key() >= Qt::Key_Shift && ev->key() <= Qt::Key_ScrollLock) 
+        return;
+
     FIXME("Implement record/playback in Qt");
     int mod=modifiers;
     if (recorder->GetMode()!=EventRecorder::PLAYBACK) 
@@ -155,6 +159,10 @@ void QFluxusWidget::keyPressEvent(QKeyEvent * ev)
 
 void QFluxusWidget::keyReleaseEvent(QKeyEvent * ev)
 {
+    // don't bother with modifiers for now
+    if (ev->key() >= Qt::Key_Shift && ev->key() <= Qt::Key_ScrollLock) 
+        return;
+
     int mod=modifiers;
     if (recorder->GetMode()!=EventRecorder::PLAYBACK) 
         mod=ev->modifiers();
